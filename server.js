@@ -10,32 +10,16 @@ console.log(`Servidor WebSocket iniciado en el puerto ${WS_PORT}`);
 const canvasState = new Map();
 
 const serviceAccount = {
-    // Estas son las variables de entorno que debes configurar en Render,
-    // extrayendo los valores de tu archivo JSON de Firebase.
-    // Ejemplo de valores de tu archivo JSON:
-    // "type": "service_account"
     "type": process.env.FIREBASE_TYPE,
-    // "project_id": "paginamods-7c133"
     "project_id": process.env.FIREBASE_PROJECT_ID,
-    // "private_key_id": "ff1e621cdf9daab3b6bab4541e31c0e6d65d5cac"
     "private_key_id": process.env.FIREBASE_PRIVATE_KEY_ID,
-    // "private_key": "-----BEGIN PRIVATE KEY-----\n..."
-    // NOTA: La private_key debe ir en una sola línea en la variable de entorno de Render,
-    // y el código ya maneja la conversión de '\\n' a '\n'.
     "private_key": process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
-    // "client_email": "firebase-adminsdk-fbsvc@paginamods-7c133.iam.gserviceaccount.com"
     "client_email": process.env.FIREBASE_CLIENT_EMAIL,
-    // "client_id": "113341584442842746427"
     "client_id": process.env.FIREBASE_CLIENT_ID,
-    // "auth_uri": "https://accounts.google.com/o/oauth2/auth"
     "auth_uri": process.env.FIREBASE_AUTH_URI,
-    // "token_uri": "https://oauth2.googleapis.com/token"
     "token_uri": process.env.FIREBASE_TOKEN_URI,
-    // "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs"
     "auth_provider_x509_cert_url": process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
-    // "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40paginamods-7c133.iam.gserviceaccount.com"
     "client_x509_cert_url": process.env.FIREBASE_CLIENT_X509_CERT_URL,
-    // "universe_domain": "googleapis.com"
     "universe_domain": process.env.FIREBASE_UNIVERSE_DOMAIN
 };
 
@@ -68,16 +52,9 @@ if (serviceAccount.private_key) {
 
 const db = admin.firestore();
 
-// Esta variable de entorno también se debe configurar en Render
-// APP_ID: 'default-canvas-app' o cualquier otro ID único para tu app
 const APP_ID = process.env.APP_ID || 'default-canvas-app';
 const elementsCollectionRef = db.collection(`artifacts/${APP_ID}/public/data/canvasElements`);
 
-// Estas son las variables de entorno que debes configurar en Render,
-// extrayendo los valores de tu archivo de texto de Cloudinary.
-// Cloud name: dw998s0ja
-// API Key: 976289861226313
-// API Secret: Mrc-p7Mxd2QNt_svkrQKI7uqGP4
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
