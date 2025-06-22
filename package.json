@@ -1,6 +1,19 @@
 {
+  "name": "pagina-mods-backend",
+  "version": "1.0.0",
+  "description": "Servidor WebSocket para la aplicación de edición de canvas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-    "cloudinary": "^2.7.0",
-    "ws": "^8.18.2"
-  }
+    "firebase-admin": "^11.6.0",
+    "ws": "^8.18.0",
+    "cloudinary": "^2.2.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "author": "",
+  "license": "ISC"
 }
