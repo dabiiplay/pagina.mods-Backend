@@ -1,0 +1,3029 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Mods</title>
+    <link rel="icon" href="./cat.png" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            overflow: hidden;
+            background-color: #1a202c;
+        }
+        .element-wrapper {
+            position: absolute;
+            cursor: grab;
+            user-select: none;
+            box-sizing: border-box;
+            transition: box-shadow 0.1s ease-in-out;
+            will-change: transform, left, top;
+        }
+        .element-wrapper.selected {
+            box-shadow: 0 0 0 2px #8B5CF6;
+            cursor: grabbing;
+        }
+        .text-element-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .element-content {
+            display: block;
+            object-fit: contain;
+            width: 100%;
+            height: 100%;
+        }
+        .audio-visual-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            pointer-events: none;
+        }
+        .text-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+            text-align: center;
+            box-sizing: border-box;
+            line-height: 1;
+            padding: 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #8B5CF6;
+            border: 1px solid #ffffff;
+            cursor: grab;
+            z-index: 1000;
+        }
+        .resize-handle.top-left { top: -5px; left: -5px; cursor: nwse-resize; }
+        .resize-handle.top-right { top: -5px; right: -5px; cursor: nesw-resize; }
+        .resize-handle.bottom-left { bottom: -5px; left: -5px; cursor: nesw-resize; }
+        .resize-handle.bottom-right { bottom: -5px; right: -5px; cursor: nwse-resize; }
+        .rotation-handle {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background-color: #8B5CF6;
+            border-radius: 50%;
+            border: 1px solid #ffffff;
+            cursor: grab;
+            z-index: 1000;
+            display: none;
+        }
+        .sidebar-scroll {
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .tab-button {
+            padding: 0.35rem 1rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            color: #A0AEC0;
+            transition: all 0.2s ease-in-out;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .tab-button.active {
+            border-bottom-color: transparent;
+            background-color: #4A5568;
+            color: #FFFFFF;
+        }
+        .tab-content {
+            display: none;
+            padding-top: 0.5rem;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .layer-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            background-color: #2D3748;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            color: #E2E8F0;
+        }
+        .layer-item:hover {
+            background-color: #4A5568;
+        }
+        .layer-item.selected {
+            background-color: #8B5CF6;
+            color: #FFFFFF;
+        }
+        .audio-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            background-color: #2D3748;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            color: #E2E8F0;
+            border-radius: 0.375rem;
+        }
+        .audio-list-item:hover {
+            background-color: #4A5568;
+        }
+        .audio-list-item.selected {
+            background-color: #8B5CF6;
+            color: #FFFFFF;
+        }
+        .audio-list-item button svg {
+            pointer-events: none; /* Ensures clicks pass through SVG to the button */
+        }
+        button.active-style {
+            background-color: #8B5CF6;
+            border: 1px solid #7C3AED;
+        }
+        .reset-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #A0AEC0;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+        .reset-button:hover {
+            color: #E2E8F0;
+        }
+        input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            height: 2.5rem;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+        }
+        input[type="color"]::-moz-color-remap-panel {
+            border: none;
+        }
+        input[type="color"]::-moz-color-swatch {
+        }
+        .custom-file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .custom-file-input input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            aside {
+                width: 100%;
+                height: auto;
+                max-height: 50vh;
+            }
+            main {
+                flex-grow: 1;
+                width: 100%;
+                margin: 0.5rem;
+            }
+        }
+        input[type="range"].w-full {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+            height: 8px;
+        }
+        input[type="range"].w-full::-webkit-slider-runnable-track {
+            background: #4A5568;
+            border-radius: 4px;
+            height: 4px;
+        }
+        input[type="range"].w-full::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #8B5CF6;
+            border: 1px solid #FFFFFF;
+            border-radius: 50%;
+            height: 16px;
+            width: 16px;
+            margin-top: -6px;
+        }
+        input[type="range"].w-full::-moz-range-track {
+            background: #4A5568;
+            border-radius: 4px;
+            height: 4px;
+        }
+        input[type="range"].w-full::-moz-range-thumb {
+            background-color: #8B5CF6;
+            border: 1px solid #FFFFFF;
+            border-radius: 50%;
+            height: 16px;
+            width: 16px;
+        }
+        main#editorCanvas {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem;
+            overflow: hidden;
+        }
+        #mainCanvasWrapper {
+            display: flex;
+            position: relative;
+            width: 1496px;
+            height: 720px;
+            transform-origin: center center;
+            flex-shrink: 0;
+        }
+        #leftSidebar {
+            width: 200px;
+            height: 720px;
+            background-color: rgba(16, 185, 129, 0.5);
+            border: 2px dashed #4ade80;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        #innerCanvas {
+            width: 1280px;
+            height: 720px;
+            background-color: transparent;
+            border: 2px dashed white;
+            flex-shrink: 0;
+        }
+        #dropArea {
+            border: 2px dashed #4A5568;
+            background-color: #2D3748;
+            text-align: center;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: #A0AEC0;
+            font-size: 0.875rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+        #dropArea.highlight {
+            background-color: #4A5568;
+            border-color: #8B5CF6;
+        }
+        #newZoomRange::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #8B5CF6;
+            border: 1px solid #FFFFFF;
+            border-radius: 50%;
+            height: 16px;
+            width: 16px;
+            margin-top: -5px;
+        }
+        #newZoomRange::-moz-range-thumb {
+            background-color: #8B5CF6;
+            border: 1px solid #FFFFFF;
+            border-radius: 50%;
+            height: 16px;
+            width: 16px;
+            margin-top: -5px;
+        }
+        #loadingSpinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 0.75rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        #loadingSpinner.hidden {
+            display: none;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #8B5CF6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #wsStatus {
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            text-align: center;
+        }
+        #wsStatus.connected {
+            background-color: #10B981;
+            color: #064E40;
+        }
+        #wsStatus.disconnected {
+            background-color: #EF4444;
+            color: #7F1D1D;
+        }
+        #wsStatus.connecting {
+            background-color: #FBBF24;
+            color: #78350F;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-dialog {
+            background-color: #2D3748;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+            color: #E2E8F0;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal-overlay.active .modal-dialog {
+            transform: translateY(0);
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #8B5CF6;
+        }
+        .modal-message {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .modal-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .modal-button:hover {
+            transform: translateY(-2px);
+        }
+        .modal-button.mute {
+            background-color: #EF4444;
+            color: #FFFFFF;
+            border: 1px solid #DC2626;
+        }
+        .modal-button.mute:hover {
+            background-color: #DC2626;
+        }
+        .modal-button.sound {
+            background-color: #10B981;
+            color: #FFFFFF;
+            border: 1px solid #059669;
+        }
+        .modal-button.sound:hover {
+            background-color: #059669;
+        }
+    </style>
+</head>
+<body class="h-screen flex text-gray-800">
+    <div id="loadingSpinner" class="hidden">
+        <div class="spinner"></div>
+        Cargando elementos...
+    </div>
+    <div id="mutePreferenceModal" class="modal-overlay">
+        <div class="modal-dialog">
+            <h3 class="modal-title">¡Atención!</h3>
+            <p class="modal-message">
+                Se recomienda silenciar la página para evitar interrupciones.
+            </p>
+            <div class="modal-buttons">
+                <button id="modalMuteBtn" class="modal-button mute">Silenciar</button>
+                <button id="modalSoundBtn" class="modal-button sound">Con Sonido</button>
+            </div>
+        </div>
+    </div>
+    <aside class="w-80 bg-gray-900 shadow-lg flex flex-col sidebar-scroll text-gray-200 md:w-80 pt-4 z-20">
+        <div class="border-b pb-2 border-gray-700 px-4">
+            <label for="imageUpload" class="block text-sm font-medium text-gray-300 mb-2 text-center">Subir Imagen/GIF/MP3</label>
+            <div class="custom-file-input w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 cursor-pointer transition-colors duration-200 text-center">
+                <span id="selectFileButtonText">Seleccionar archivo</span>
+                <input type="file" id="imageUpload" accept="image/*, .gif, audio/mpeg" class="block w-full text-sm text-gray-400">
+            </div>
+            <span id="fileCountDisplay" class="block text-xs text-gray-400 mt-2 text-center">0/50</span>
+            <div id="dropArea">Arrastra y suelta archivos aquí</div>
+            <div id="wsStatus" class="disconnected">Desconectado</div>
+        </div>
+        <div class="flex border-b border-gray-700">
+            <button class="tab-button active flex-1 text-center" data-tab="properties">Ajustes</button>
+            <button class="tab-button flex-1 text-center" data-tab="text">Texto</button>
+            <button class="tab-button flex-1 text-center" data-tab="audio">Audio</button>
+            <button class="tab-button flex-1 text-center" data-tab="layers">Capas</button>
+        </div>
+        <div id="tab-content-properties" class="tab-content active flex-grow px-4">
+            <h2 class="text-lg font-semibold mb-4 text-purple-400">Controles de Elemento</h2>
+            <div class="mb-4">
+                <label for="opacityRange" class="block text-sm font-medium text-gray-300 mb-2">Opacidad</label>
+                <div class="flex items-center space-x-2">
+                    <input type="range" id="opacityRange" min="0" max="1" step="0.01" value="1" disabled class="w-full h-2 bg-gray-700 appearance-none cursor-pointer range-shadow">
+                    <span id="opacityValue" class="text-xs text-gray-400 w-10 text-right">100%</span>
+                    <button id="resetOpacityBtn" class="reset-button" title="Reiniciar Opacidad" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label for="rotationRange" class="block text-sm font-medium text-gray-300 mb-2">Rotación</label>
+                <div class="flex items-center space-x-2">
+                    <input type="range" id="rotationRange" min="0" max="360" step="1" value="0" disabled class="w-full h-2 bg-gray-700 appearance-none cursor-pointer range-shadow">
+                    <span id="rotationValue" class="text-xs text-gray-400 w-10 text-right">0°</span>
+                    <button id="resetRotationBtn" class="reset-button" title="Reiniciar Rotación" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button id="duplicateElementBtn" disabled class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 shadow-md transition-all duration-200 mb-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                Duplicar elemento
+            </button>
+            <button id="bringToFrontBtn" disabled class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 shadow-md transition-all duration-200 mb-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                Traer al frente
+            </button>
+            <button id="deleteElementBtn" disabled class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-4">
+                Eliminar elemento
+            </button>
+        </div>
+        <div id="tab-content-text" class="tab-content flex-grow px-4">
+            <label for="textInput" class="block text-sm font-medium text-gray-300 mb-2">Contenido del Texto</label>
+            <textarea id="textInput" class="w-full p-2 border border-gray-600 bg-gray-700 text-gray-100 focus:outline-none focus:ring-purple-400" rows="3" placeholder="Escribe aquí el texto"></textarea>
+            <button id="addTextBtn" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 shadow-md transition-all duration-200 mb-4">
+                Añadir Texto al Lienzo
+            </button>
+            <h3 class="text-md font-semibold mb-2 text-purple-400 mt-6">Ajustes de Estilo de Texto</h3>
+            <div class="flex space-x-2 mb-4">
+                <button id="boldTextBtn" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 shadow-md transition-all duration-200">
+                    Negrita
+                </button>
+                <button id="italicTextBtn" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white italic py-2 px-4 shadow-md transition-all duration-200">
+                    Cursiva
+                </button>
+            </div>
+            <div class="mb-4">
+                <label for="fontSizeRange" class="block text-sm font-medium text-gray-300 mb-2">Tamaño del Texto</label>
+                <div class="flex items-center space-x-2">
+                    <input type="range" id="fontSizeRange" min="10" max="100" step="1" value="24" class="w-full h-2 bg-gray-700 appearance-none cursor-pointer range-shadow">
+                    <span id="fontSizeValue" class="text-xs text-gray-400 w-10 text-right">24px</span>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="textColor" class="block text-sm font-medium text-gray-300 mb-2">Color del Texto</label>
+                <input type="color" id="textColor" value="#FFFFFF" class="w-full h-8 border border-gray-600 bg-gray-700 p-1 cursor-pointer">
+            </div>
+            <div class="mb-4">
+                <div class="flex items-center justify-between space-x-2">
+                    <label for="toggleTextBg" class="text-sm font-medium text-gray-300 cursor-pointer">Fondo del Texto</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="toggleTextBg" class="h-4 w-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500">
+                        <label for="toggleTextBg" class="text-sm font-medium text-gray-300 cursor-pointer">Activar</label>
+                    </div>
+                </div>
+                <div class="pl-4 border-l border-gray-700 mt-2">
+                    <label id="textBgColorLabel" for="textBgColor" class="block text-sm font-medium text-gray-400 mb-2 mt-2 disabled:text-gray-600">Color de Fondo del Texto</label>
+                    <input type="color" id="textBgColor" value="#000000" class="w-full h-8 border border-gray-600 bg-gray-700 p-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-800">
+                </div>
+            </div>
+            <div class="mb-4">
+                <div class="flex items-center justify-between space-x-2">
+                    <label for="toggleTextOutline" class="text-sm font-medium text-gray-300 cursor-pointer">Contorno del Texto</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="toggleTextOutline" class="h-4 w-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500">
+                        <label for="toggleTextOutline" class="text-sm font-medium text-gray-300 cursor-pointer">Activar</label>
+                    </div>
+                </div>
+                <div class="pl-4 border-l border-gray-700 mt-2">
+                    <label id="textOutlineColorLabel" for="textOutlineColor" class="block text-sm font-medium text-gray-400 mb-2 mt-2 disabled:text-gray-600">Color del Contorno</label>
+                    <input type="color" id="textOutlineColor" value="#000000" class="w-full h-8 border border-gray-600 bg-gray-700 p-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-800">
+                    <label id="outlineThicknessLabel" for="outlineThicknessRange" class="block text-sm font-medium text-gray-400 mb-2 mt-4 disabled:text-gray-600">Grosor del Contorno</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="range" id="outlineThicknessRange" min="0" max="5" step="0.1" value="0" disabled class="w-full h-2 bg-gray-700 appearance-none cursor-pointer range-shadow">
+                        <span id="outlineThicknessValue" class="text-xs text-gray-400 w-10 text-right">0px</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="tab-content-audio" class="tab-content flex-grow px-4">
+            <h2 class="text-lg font-semibold mb-4 text-purple-400">Controles de Audio</h2>
+            <span id="currentAudioName" class="block text-sm font-medium text-gray-400 mb-2"></span>
+            <div class="flex items-center justify-center space-x-4 mb-4">
+                <button id="playPauseBtn" disabled class="bg-purple-600 hover:bg-purple-700 text-white font-bold p-3 rounded-full shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                        <path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.38 2.872-1.667l11.553 6.917c1.164.696 1.164 2.67 0 3.366l-11.553 6.917C6.029 21.38 4.5 20.426 4.5 19.0V5.653Z" clip-rule="evenodd" />
+                    </svg>
+                    <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 hidden">
+                        <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25ZM14.25 5.25a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75V5.25Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label for="volumeRange" class="block text-sm font-medium text-gray-300 mb-2">Volumen</label>
+                <div class="flex items-center space-x-2">
+                    <input type="range" id="volumeRange" min="0" max="1" step="0.01" value="0.5" disabled class="w-full h-2 bg-gray-700 appearance-none cursor-pointer range-shadow">
+                    <span id="volumeValue" class="text-xs text-gray-400 w-10 text-right">50%</span>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="timelineRange" class="block text-sm font-medium text-gray-300 mb-2">Línea de tiempo</label>
+                <div class="flex items-center space-x-2">
+                    <input type="range" id="timelineRange" min="0" max="100" step="0.1" value="0" disabled class="w-full h-2 bg-gray-700 appearance-none cursor-pointer range-shadow">
+                    <span id="currentTimeDisplay" class="text-xs text-gray-400 w-16 text-right">0:00 / 0:00</span>
+                </div>
+            </div>
+            <h3 class="text-md font-semibold mb-2 text-purple-400 mt-6">Audios Subidos</h3>
+            <div id="audioPlaylist" class="space-y-2">
+                <p class="text-gray-400 text-sm">No hay audios subidos.</p>
+            </div>
+        </div>
+        <div id="tab-content-layers" class="tab-content flex-grow px-4">
+            <h2 class="text-lg font-semibold mb-4 text-purple-400">Capas de Elementos</h2>
+            <div id="layersList" class="space-y-2">
+                <p class="text-gray-400 text-sm">No hay elementos en la página.</p>
+            </div>
+        </div>
+    </aside>
+    <main id="editorCanvas" class="relative m-4 shadow-inner">
+        <div id="mainCanvasWrapper">
+            <div id="leftSidebar"></div>
+            <div id="innerCanvas">
+            </div>
+        </div>
+    </main>
+    <div class="absolute bottom-4 right-4 bg-gray-800 p-2 rounded-lg shadow-xl z-50 flex items-center space-x-2 zoom-controls">
+        <label for="newZoomRange" class="text-sm font-medium text-gray-300">Zoom</label>
+        <input type="range" id="newZoomRange" min="0.25" max="2.0" step="0.05" value="1.0" class="w-24 h-2 bg-gray-700 appearance-none cursor-pointer">
+        <span id="zoomValue" class="text-xs text-gray-400">100%</span>
+    </div>
+    <script>
+        const editorCanvas = document.getElementById('editorCanvas');
+        const mainCanvasWrapper = document.getElementById('mainCanvasWrapper');
+        const leftSidebar = document.getElementById('leftSidebar');
+        const innerCanvas = document.getElementById('innerCanvas');
+        const sidebar = document.querySelector('aside');
+        const imageUpload = document.getElementById('imageUpload');
+        const addTextBtn = document.getElementById('addTextBtn');
+        const textInput = document.getElementById('textInput');
+        const opacityRange = document.getElementById('opacityRange');
+        const opacityValue = document.getElementById('opacityValue');
+        const rotationRange = document.getElementById('rotationRange');
+        const rotationValue = document.getElementById('rotationValue');
+        const duplicateElementBtn = document.getElementById('duplicateElementBtn');
+        const deleteElementBtn = document.getElementById('deleteElementBtn');
+        const layersList = document.getElementById('layersList');
+        const bringToFrontBtn = document.getElementById('bringToFrontBtn');
+        const textColorInput = document.getElementById('textColor');
+        const textBgColorInput = document.getElementById('textBgColor');
+        const boldTextBtn = document.getElementById('boldTextBtn');
+        const italicTextBtn = document.getElementById('italicTextBtn');
+        const toggleTextBg = document.getElementById('toggleTextBg');
+        const toggleTextOutline = document.getElementById('toggleTextOutline');
+        const textOutlineColorInput = document.getElementById('textOutlineColor');
+        const outlineThicknessRange = document.getElementById('outlineThicknessRange');
+        const outlineThicknessValue = document.getElementById('outlineThicknessValue');
+        const fontSizeRange = document.getElementById('fontSizeRange');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        const resetOpacityBtn = document.getElementById('resetOpacityBtn');
+        const resetRotationBtn = document.getElementById('resetRotationBtn');
+        const audioControlsSection = document.getElementById('tab-content-audio');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const volumeRange = document.getElementById('volumeRange');
+        const volumeValueDisplay = document.getElementById('volumeValue');
+        const timelineRange = document.getElementById('timelineRange');
+        const currentTimeDisplay = document.getElementById('currentTimeDisplay');
+        const currentAudioNameDisplay = document.getElementById('currentAudioName');
+        const audioPlaylist = document.getElementById('audioPlaylist');
+        const fileLimit = 50;
+        const fileCountDisplay = document.getElementById('fileCountDisplay');
+        const selectFileButtonText = document.getElementById('selectFileButtonText');
+        const textBgColorLabel = document.getElementById('textBgColorLabel');
+        const textOutlineColorLabel = document.getElementById('textOutlineColorLabel');
+        const outlineThicknessLabel = document.getElementById('outlineThicknessLabel');
+        const zoomRange = document.getElementById('newZoomRange');
+        const zoomValue = document.getElementById('zoomValue');
+        const dropArea = document.getElementById('dropArea');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const wsStatusElement = document.getElementById('wsStatus');
+        const mutePreferenceModal = document.getElementById('mutePreferenceModal');
+        const modalMuteBtn = document.getElementById('modalMuteBtn');
+        const modalSoundBtn = document.getElementById('modalSoundBtn');
+        let selectedElementWrapper = null;
+        let selectedAudioElement = null;
+        let isDragging = false;
+        let isResizing = false;
+        let isRotating = false;
+        let activeHandle = '';
+        let initialMouseX, initialMouseY;
+        let initialLeft, initialTop, initialWidth, initialHeight;
+        let initialRotationAngle = 0;
+        let initialElementRotation = 0;
+        let currentZoom = 1.0;
+        let isMutedGlobally = true;
+        const allElements = new Map();
+        const WS_URL = 'wss://pagina-mods-websocket-server.onrender.com';
+        let ws;
+        let reconnectInterval;
+        let pendingUpdateAnimationFrame = null;
+
+        let myUserId = 'user-' + Math.random().toString(36).substr(2, 9);
+        let myUserColor = getRandomColor();
+        const userCursors = new Map();
+        let lastCursorSendTime = 0;
+        const cursorThrottleTime = 50;
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function createUserCursor(userId, userName, userColor) {
+            let cursorDiv = document.createElement('div');
+            cursorDiv.id = `cursor-${userId}`;
+            cursorDiv.classList.add('absolute', 'w-4', 'h-4', 'rounded-full', 'shadow-lg');
+            cursorDiv.style.backgroundColor = userColor;
+            cursorDiv.style.pointerEvents = 'none';
+            cursorDiv.style.zIndex = '9999';
+            cursorDiv.style.transition = 'transform 0.1s linear';
+
+            let nameSpan = document.createElement('span');
+            nameSpan.textContent = userName;
+            nameSpan.classList.add('absolute', 'whitespace-nowrap', 'text-xs', 'font-bold', 'text-white', 'bg-gray-800', 'px-1', 'py-0.5', 'rounded-sm');
+            nameSpan.style.bottom = '100%';
+            nameSpan.style.left = '50%';
+            nameSpan.style.transform = 'translateX(-50%)';
+            cursorDiv.appendChild(nameSpan);
+
+            mainCanvasWrapper.appendChild(cursorDiv);
+            userCursors.set(userId, cursorDiv);
+            return cursorDiv;
+        }
+
+        function connectWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                console.log('WebSocket already connected.');
+                return;
+            }
+            updateWsStatus('connecting');
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                console.log('Connected to WebSocket server');
+                updateWsStatus('connected');
+                if (reconnectInterval) {
+                    clearInterval(reconnectInterval);
+                    reconnectInterval = null;
+                }
+                sendWebSocketMessage('userConnect', { userId: myUserId, userName: `Usuario ${myUserId.slice(-4)}`, userColor: myUserColor });
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                if (message.type === 'initialState') {
+                    allElements.clear();
+                    mainCanvasWrapper.querySelectorAll('.element-wrapper').forEach(el => el.remove());
+                    audioPlaylist.innerHTML = '<p class="text-gray-400 text-sm">No hay audios subidos.</p>';
+                    selectedAudioElement = null;
+
+                    userCursors.forEach(cursor => cursor.remove());
+                    userCursors.clear();
+
+                    message.elements.forEach(data => {
+                        if (data.type === 'audio') {
+                            createAudioElementAndAddToPlaylist(data);
+                        } else {
+                            createElementFromData(data);
+                        }
+                    });
+                    if (message.cursors) {
+                        message.cursors.forEach(cursorData => {
+                            if (cursorData.userId !== myUserId) {
+                                let cursor = userCursors.get(cursorData.userId);
+                                if (!cursor) {
+                                    console.warn(`Cursor for user ${cursorData.userId} not found, creating a placeholder.`);
+                                    cursor = createUserCursor(cursorData.userId, `Usuario ${cursorData.userId.slice(-4)}`, getRandomColor());
+                                }
+                                cursor.style.left = `${cursorData.x}px`;
+                                cursor.style.top = `${cursorData.y}px`;
+                            }
+                        });
+                    }
+
+                    updateLayersList();
+                    updateAudioPlaylistDisplay();
+                    updateFileCountDisplay();
+                    deselectAllElements();
+                } else if (message.type === 'elementAdd') {
+                    if (message.element.type === 'audio') {
+                        createAudioElementAndAddToPlaylist(message.element);
+                    } else {
+                        createElementFromData(message.element);
+                    }
+                    updateLayersList();
+                    updateAudioPlaylistDisplay();
+                } else if (message.type === 'elementUpdate') {
+                    updateElementFromData(message.element);
+                    updateLayersList();
+                    updateAudioPlaylistDisplay();
+                } else if (message.type === 'elementDelete') {
+                    deleteElementFromData(message.elementId);
+                    updateLayersList();
+                    updateAudioPlaylistDisplay();
+                    updateFileCountDisplay();
+                } else if (message.type === 'reorderLayers') {
+                    message.elements.forEach(elementData => {
+                        const elementWrapper = allElements.get(elementData.id);
+                        if (elementWrapper && elementWrapper.style) {
+                            elementWrapper.style.zIndex = elementData.zIndex;
+                        }
+                    });
+                    updateLayersList();
+                } else if (message.type === 'cursorMove') {
+                    if (message.userId !== myUserId) {
+                        let cursor = userCursors.get(message.userId);
+                        if (!cursor) {
+                            console.warn(`Cursor for user ${message.userId} not found, creating a placeholder.`);
+                            cursor = createUserCursor(message.userId, `Usuario ${message.userId.slice(-4)}`, getRandomColor());
+                        }
+                        cursor.style.left = `${message.x}px`;
+                        cursor.style.top = `${message.y}px`;
+                    }
+                } else if (message.type === 'userConnect') {
+                    if (message.userId !== myUserId) {
+                        if (!userCursors.has(message.userId)) {
+                            createUserCursor(message.userId, message.userName, message.userColor);
+                            console.log(`[WS] User connected: ${message.userName} (${message.userId})`);
+                        }
+                    }
+                } else if (message.type === 'userDisconnect') {
+                    let cursor = userCursors.get(message.userId);
+                    if (cursor) {
+                        cursor.remove();
+                        userCursors.delete(message.userId);
+                        console.log(`[WS] User disconnected: ${message.userId}`);
+                    }
+                } else if (message.type === 'ping') {
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected from WebSocket server. Attempting to reconnect...');
+                updateWsStatus('disconnected');
+                if (!reconnectInterval) {
+                    reconnectInterval = setInterval(connectWebSocket, 5000);
+                }
+                if (myUserId) {
+                    sendWebSocketMessage('userDisconnect', { userId: myUserId });
+                }
+                userCursors.forEach(cursor => cursor.remove());
+                userCursors.clear();
+            };
+
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+                ws.close();
+            };
+        }
+
+        function sendWebSocketMessage(type, data) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type, ...data }));
+            } else {
+                console.warn('WebSocket not connected, could not send message:', type, data);
+            }
+        }
+
+        function updateWsStatus(status) {
+            wsStatusElement.classList.remove('connected', 'disconnected', 'connecting');
+            if (status === 'connected') {
+                wsStatusElement.classList.add('connected');
+                wsStatusElement.textContent = 'Conectado';
+            } else if (status === 'disconnected') {
+                wsStatusElement.classList.add('disconnected');
+                wsStatusElement.textContent = 'Desconectado';
+            } else if (status === 'connecting') {
+                wsStatusElement.classList.add('connecting');
+                wsStatusElement.textContent = 'Conectando...';
+            }
+        }
+
+        function generateUniqueId() {
+            return 'element-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function getNextHighestZIndex() {
+            let maxZ = 0;
+            mainCanvasWrapper.querySelectorAll('.element-wrapper').forEach(elementWrapper => {
+                const currentZ = parseInt(elementWrapper.style.zIndex || 0);
+                if (currentZ > maxZ) {
+                    maxZ = currentZ;
+                }
+            });
+            return maxZ + 1;
+        }
+
+        function applyZoom() {
+            mainCanvasWrapper.style.transform = `scale(${currentZoom})`;
+            mainCanvasWrapper.style.transformOrigin = 'center center';
+            zoomValue.textContent = `${Math.round(currentZoom * 100)}%`;
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
+
+        function generateTextShadowForOutline(thickness, color) {
+            if (parseFloat(thickness) === 0) return 'none';
+            const t = parseFloat(thickness);
+            let shadow = [];
+            shadow.push(`${-t}px ${-t}px 0 ${color}`);
+            shadow.push(`${0}px ${-t}px 0 ${color}`);
+            shadow.push(`${t}px ${-t}px 0 ${color}`);
+            shadow.push(`${-t}px ${0}px 0 ${color}`);
+            shadow.push(`${t}px ${0}px 0 ${color}`);
+            shadow.push(`${-t}px ${t}px 0 ${color}`);
+            shadow.push(`${0}px ${t}px 0 ${color}`);
+            shadow.push(`${t}px ${t}px 0 ${color}`);
+            return shadow.join(', ');
+        }
+
+        function adjustTextElementWrapperSize(elementWrapper) {
+            const textElement = elementWrapper.querySelector('.element-content');
+            if (!textElement) return;
+
+            const computedStyle = window.getComputedStyle(textElement);
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.visibility = 'hidden';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            tempDiv.style.height = 'auto';
+            tempDiv.style.width = 'auto';
+            tempDiv.style.whiteSpace = 'pre-wrap';
+            tempDiv.style.wordBreak = 'break-word';
+            tempDiv.style.boxSizing = 'border-box';
+            tempDiv.style.lineHeight = '1';
+            tempDiv.style.textAlign = 'center';
+            tempDiv.style.display = 'flex';
+            tempDiv.style.alignItems = 'center';
+            tempDiv.style.justifyContent = 'center';
+
+            tempDiv.style.fontSize = computedStyle.fontSize;
+            tempDiv.style.fontWeight = computedStyle.fontWeight;
+            tempDiv.style.fontStyle = computedStyle.fontStyle;
+            tempDiv.style.fontFamily = computedStyle.fontFamily;
+            tempDiv.style.color = computedStyle.color;
+            tempDiv.style.backgroundColor = computedStyle.backgroundColor;
+
+            const outlineThickness = parseFloat(textElement.style.webkitTextStrokeWidth) || 0;
+            const outlineColor = textElement.style.webkitTextStrokeColor || '#000000';
+            if (outlineThickness > 0) {
+                tempDiv.style.webkitTextStrokeWidth = `${outlineThickness}px`;
+                tempDiv.style.webkitTextStrokeColor = outlineColor;
+                tempDiv.style.textShadow = generateTextShadowForOutline(outlineThickness, outlineColor);
+            } else {
+                tempDiv.style.webkitTextStrokeWidth = '0';
+                tempDiv.style.webkitTextStrokeColor = 'transparent';
+                tempDiv.style.textShadow = 'none';
+            }
+
+            tempDiv.textContent = textElement.textContent;
+            document.body.appendChild(tempDiv);
+
+            const rawTextRect = tempDiv.getBoundingClientRect();
+            const rawContentWidth = rawTextRect.width;
+            const rawContentHeight = rawTextRect.height;
+
+            document.body.removeChild(tempDiv);
+
+            const wrapperPaddingHorizontal = 25;
+            const wrapperPaddingVertical = 10;
+
+            elementWrapper.style.width = `${rawContentWidth + (wrapperPaddingHorizontal * 2)}px`;
+            elementWrapper.style.height = `${rawContentHeight + (wrapperPaddingVertical * 2)}px`;
+            elementWrapper.style.padding = `${wrapperPaddingVertical}px ${wrapperPaddingHorizontal}px`;
+            textElement.style.padding = '0px';
+        }
+
+        function saveElementsState() {
+            localStorage.setItem('isMutedGlobally', JSON.stringify(isMutedGlobally));
+        }
+
+        function loadElementsState() {
+            const storedMuteState = localStorage.getItem('isMutedGlobally');
+            if (storedMuteState !== null) {
+                isMutedGlobally = JSON.parse(storedMuteState);
+            } else {
+                isMutedGlobally = true;
+            }
+        }
+
+        function createElementFromData(data) {
+            if (data.type === 'audio') {
+                createAudioElementAndAddToPlaylist(data);
+                return;
+            }
+
+            if (allElements.has(data.id)) {
+                const existingElement = allElements.get(data.id);
+                if (existingElement && existingElement.classList && existingElement.classList.contains('element-wrapper')) {
+                    updateElementFromData(data);
+                    return;
+                }
+            }
+
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.id = data.id;
+            wrapperDiv.classList.add('element-wrapper');
+            if (data.type === 'text') {
+                wrapperDiv.classList.add('text-element-wrapper');
+            }
+
+            wrapperDiv.style.left = data.left;
+            wrapperDiv.style.top = data.top;
+            wrapperDiv.style.transform = data.rotation;
+            wrapperDiv.style.zIndex = data.zIndex;
+            if (data.originalName) {
+                wrapperDiv.dataset.originalName = data.originalName;
+            }
+            if (data.initialAspectRatio) { // Guarda el aspect ratio para redimensionar
+                wrapperDiv.dataset.initialAspectRatio = data.initialAspectRatio;
+            }
+            if (data.publicId) { // Guarda el publicId para futuras referencias
+                wrapperDiv.dataset.publicId = data.publicId;
+            }
+
+            let contentElement;
+            if (data.type === 'img') {
+                contentElement = document.createElement('img');
+                contentElement.src = data.src; // Ahora src es la URL de Cloudinary
+                contentElement.alt = data.originalName || 'Image';
+                contentElement.classList.add('element-content');
+                
+                wrapperDiv.style.width = data.width;
+                wrapperDiv.style.height = data.height;
+
+            } else if (data.type === 'text') {
+                contentElement = document.createElement('div');
+                contentElement.classList.add('text-content');
+                contentElement.classList.add('element-content');
+                contentElement.contentEditable = true;
+                contentElement.textContent = data.textContent;
+                contentElement.style.color = data.color;
+                contentElement.style.backgroundColor = data.backgroundColor;
+                contentElement.style.fontSize = data.fontSize;
+                contentElement.spellcheck = false;
+
+                wrapperDiv.style.width = data.width;
+                wrapperDiv.style.height = data.height;
+
+                if (data.isBold) contentElement.classList.add('font-bold');
+                if (data.isItalic) contentElement.classList.add('italic');
+
+                if (data.hasTextOutline && parseFloat(data.outlineThickness) > 0) {
+                    contentElement.style.webkitTextStrokeWidth = data.outlineThickness;
+                    contentElement.style.webkitTextStrokeColor = data.outlineColor;
+                    contentElement.style.textShadow = generateTextShadowForOutline(parseFloat(data.outlineThickness), data.outlineColor);
+                } else {
+                    contentElement.style.webkitTextStrokeWidth = '0';
+                    contentElement.style.webkitTextStrokeColor = 'transparent';
+                    contentElement.style.textShadow = 'none';
+                }
+            } else {
+                console.warn('Unknown element type in saved data (only image/text expected for visual elements):', data.type);
+                return;
+            }
+
+            contentElement.style.opacity = data.opacity;
+            wrapperDiv.appendChild(contentElement);
+            addHandles(wrapperDiv);
+            mainCanvasWrapper.appendChild(wrapperDiv);
+            allElements.set(wrapperDiv.id, wrapperDiv);
+
+            if (data.type === 'text') {
+                adjustTextElementWrapperSize(wrapperDiv);
+            }
+        }
+
+        function createAudioElementAndAddToPlaylist(data) {
+            console.log(`[AUDIO_CREATE] Attempting to create/update audio element: ${data.id}`);
+            let audioElement = allElements.get(data.id);
+            if (!audioElement) {
+                console.log(`[AUDIO_CREATE] Audio element ${data.id} not found, creating new.`);
+                audioElement = document.createElement('audio');
+                audioElement.id = data.id;
+                audioElement.src = data.src; // Ahora src es la URL de Cloudinary
+                audioElement.volume = data.volume || 0.5;
+                audioElement.currentTime = data.currentTime || 0;
+                audioElement.dataset.lastVolume = data.lastVolume || 0.5;
+                audioElement.muted = data.muted || isMutedGlobally;
+                audioElement.dataset.originalName = data.originalName || `Audio ${data.id.substring(data.id.length - 4)}`;
+                audioElement.dataset.type = 'audio';
+                if (data.publicId) { // Guarda el publicId
+                    audioElement.dataset.publicId = data.publicId;
+                }
+
+                audioElement.addEventListener('loadedmetadata', () => {
+                    console.log(`[AUDIO_EVENT] loadedmetadata for ${audioElement.id}. Duration: ${audioElement.duration}`);
+                    if (isNaN(audioElement.duration)) {
+                        audioElement.duration = data.duration || audioElement.duration;
+                    }
+                    updateTimelineDisplay(audioElement);
+                });
+                audioElement.addEventListener('timeupdate', () => {
+                    if (selectedAudioElement && selectedAudioElement.id === audioElement.id) {
+                        updateTimelineDisplay(audioElement);
+                    }
+                });
+                audioElement.addEventListener('ended', () => {
+                    console.log(`[AUDIO_EVENT] Audio ended for ${audioElement.id}`);
+                    if (selectedAudioElement && selectedAudioElement.id === audioElement.id) {
+                        updatePlayPauseButton(true);
+                        audioElement.currentTime = 0;
+                        timelineRange.value = 0;
+                        currentTimeDisplay.textContent = formatTime(0) + ' / ' + formatTime(audioElement.duration || 0);
+                        sendWebSocketMessage('elementUpdate', { element: getElementState(audioElement) });
+                    }
+                });
+
+                allElements.set(audioElement.id, audioElement);
+                console.log(`[AUDIO_CREATE] Audio element ${audioElement.id} added to allElements. Map size: ${allElements.size}`);
+                addAudioItemToPlaylistUI(audioElement);
+            } else {
+                console.log(`[AUDIO_CREATE] Audio element ${data.id} already exists, updating properties.`);
+                audioElement.src = data.src;
+                audioElement.volume = data.volume;
+                audioElement.currentTime = data.currentTime;
+                audioElement.dataset.lastVolume = data.lastVolume;
+                audioElement.muted = data.muted || isMutedGlobally;
+                audioElement.dataset.originalName = data.originalName || `Audio ${data.id.substring(data.id.length - 4)}`;
+                if (data.publicId) {
+                    audioElement.dataset.publicId = data.publicId;
+                }
+
+                if (audioElement.paused || Math.abs(audioElement.currentTime - data.currentTime) > 0.1) {
+                    audioElement.currentTime = data.currentTime;
+                }
+
+                if (data.isPlaying && audioElement.paused && !isMutedGlobally) {
+                    audioElement.play().catch(e => console.warn('Autoplay blocked during update for audio element:', e));
+                } else if (!data.isPlaying && !audioElement.paused) {
+                    audioElement.pause();
+                }
+            }
+
+            if (selectedAudioElement && selectedAudioElement.id === audioElement.id) {
+                selectAudioElement(audioElement);
+            }
+            updateAudioPlaylistDisplay();
+        }
+
+        function addAudioItemToPlaylistUI(audioElement) {
+            console.log(`[AUDIO_UI] Adding/Updating UI item for audio: ${audioElement.id}`);
+            const noAudioMessage = audioPlaylist.querySelector('p');
+            if (noAudioMessage) {
+                noAudioMessage.remove();
+            }
+
+            let audioItemDiv = audioPlaylist.querySelector(`.audio-list-item[data-id="${audioElement.id}"]`);
+            if (audioItemDiv) {
+                console.log(`[AUDIO_UI] UI item for ${audioElement.id} already exists, updating.`);
+                audioItemDiv.querySelector('span').textContent = audioElement.dataset.originalName;
+            } else {
+                console.log(`[AUDIO_UI] Creating new UI item for audio: ${audioElement.id}`);
+                audioItemDiv = document.createElement('div');
+                audioItemDiv.classList.add('audio-list-item');
+                audioItemDiv.dataset.id = audioElement.id;
+
+                const audioNameSpan = document.createElement('span');
+                audioNameSpan.textContent = audioElement.dataset.originalName;
+                audioNameSpan.classList.add('flex-1', 'truncate');
+                audioItemDiv.appendChild(audioNameSpan);
+
+                const controlsDiv = document.createElement('div');
+                controlsDiv.classList.add('flex', 'space-x-2');
+
+                const deleteAudioBtn = document.createElement('button');
+                deleteAudioBtn.classList.add('text-white', 'p-1', 'rounded-full', 'bg-red-600', 'hover:bg-red-700', 'transition-colors');
+                deleteAudioBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+                        <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.519c.55.11.92.646.8 1.185A8.923 8.923 0 0 1 18 9.75a9.006 9.006 0 0 1-5.972 5.917c-.477.108-.948.2-1.419.292a.75.75 0 0 0-.583.75v.007c.087.756.345 1.5.779 2.179.412.63.923 1.227 1.529 1.776l.006.007A6.75 6.75 0 0 1 20.25 22.5H21v-1.5h-.75A5.25 5.25 0 0 0 14.5 17.75l-.004-.002a7.61 7.61 0 0 0-1.2-.26C11.396 17.29 10 16.5 10 16v-1.25a.75.75 0 0 0-.583-.75h-1.625l-.224-.047a.75.75 0 0 1-.515-.72v-.507l-.23-.047A.75.75 0 0 1 6 13.5v-.5l-.23-.047A.75.75 0 0 1 4.5 11.5v-.5l-.224-.047A.75.75 0 0 1 3 10v-.5l-.23-.047A.75.75 0 0 1 1.5 8.5v-.5l-.224-.047A.75.75 0 0 1 0 7V6.5a.75.75 0 0 1 .583-.75l.224-.047A.75.75 0 0 1 1.5 5.5V5a.75.75 0 0 1 .583-.75l.224-.047a.75.75 0 0 1 .515-.72V.5L4.5 0H6a.75.75 0 0 1 .583-.75L6.807-.047a.75.75 0 0 1 .515-.72v-1.25a.75.75 0 0 1 .583-.75L8.35-.047a.75.75 0 0 1 .515-.72V-2.5a.75.75 0 0 1 .583-.75L9.9-.047a.75.75 0 0 1 .515-.72V-5.5a.75.75 0 0 1 .583-.75L11.2-.047a.75.75 0 0 1 .515-.72V-8.5a.75.75 0 0 1 .583-.75L12.55-.047a.75.75 0 0 1 .515-.72V-11.5a.75.75 0 0 1 .583-.75L13.9-.047a.75.75 0 0 1 .515-.72V-14.5a.75.75 0 0 1 .583-.75L15.25-.047a.75.75 0 0 1 .515-.72V-17.5a.75.75 0 0 1 .583-.75L16.6-.047a.75.75 0 0 1 .515-.72V-20.5a.75.75 0 0 1 .583-.75L17.95-.047a.75.75 0 0 1 .515-.72V-23.5a.75.75 0 0 1 .583-.75L19.3-.047a.75.75 0 0 1 .515-.72V-26.5a.75.75 0 0 1 .583-.75L20.65-.047a.75.75 0 0 1 .515-.72V-29.5a.75.75 0 0 1 .583-.75L22-.047a.75.75 0 0 1 .515-.72V-32.5a.75.75 0 0 1 .583-.75L23.35-.047a.75.75 0 0 1 .515-.72V-35.5a.75.75 0 0 1 .583-.75L24.7-.047a.75.75 0 0 1 .515-.72V-38.5a.75.75 0 0 1 .583-.75L26.05-.047a.75.75 0 0 1 .515-.72V-41.5a.75.75 0 0 1 .75-.75H27a.75.75 0 0 1 .75.75V4.478Z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M12.924 2.182a.75.75 0 0 0-.916-.27l-5.696 2.5a.75.75 0 0 0-.422.673v2.893c-.63.076-1.25.197-1.849.369a6.002 6.002 0 0 0-3.326 1.758.75.75 0 0 0 0 1.06l.88.88a.75.75 0 0 0 1.06 0 4.5 4.5 0 0 1 6.364-6.364.75.75 0 0 0 0-1.06l-.88-.88a.75.75 0 0 0-1.06 0Z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M18.788 16.143a.75.75 0 0 0 .916.27l5.696-2.5a.75.75 0 0 0 .422-.673V10.02a6.002 6.002 0 0 0-3.326-1.758.75.75 0 0 0 0 1.06l.88.88a.75.75 0 0 0 1.06 0 4.5 4.5 0 0 1 6.364 6.364.75.75 0 0 0 0 1.06l-.88.88a.75.75 0 0 0-1.06 0Z" clip-rule="evenodd" />
+                    </svg>
+                `;
+                controlsDiv.appendChild(deleteAudioBtn);
+
+                audioItemDiv.appendChild(controlsDiv);
+                audioPlaylist.appendChild(audioItemDiv);
+
+                audioItemDiv.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectAudioElement(audioElement);
+                });
+
+                deleteAudioBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log(`Attempting to delete audio with ID: ${audioElement.id}`);
+                    deleteElementFromData(audioElement.id);
+                    sendWebSocketMessage('elementDelete', { elementId: audioElement.id });
+                });
+            }
+        }
+
+
+        function updateElementFromData(data) {
+            console.log(`[UPDATE] Received update for element ID: ${data.id}, type: ${data.type}`);
+            const element = allElements.get(data.id);
+            if (!element) {
+                console.warn(`[UPDATE] Element ${data.id} not found for update, attempting to create.`);
+                if (data.type === 'audio') {
+                    createAudioElementAndAddToPlaylist(data);
+                } else {
+                    createElementFromData(data);
+                }
+                return;
+            }
+
+            if (data.type === 'audio') {
+                console.log(`[UPDATE] Updating properties of AUDIO element: ${data.id}`);
+                element.src = data.src;
+                element.volume = data.volume;
+                element.dataset.lastVolume = data.lastVolume;
+                element.muted = data.muted || isMutedGlobally;
+                if (data.publicId) { // Actualiza el publicId si viene en la data
+                    element.dataset.publicId = data.publicId;
+                }
+
+                if (element.paused || Math.abs(element.currentTime - data.currentTime) > 0.1) {
+                    element.currentTime = data.currentTime;
+                    console.log(`[UPDATE] Setting currentTime for ${data.id} to ${data.currentTime}`);
+                }
+
+                if (data.isPlaying && element.paused && !isMutedGlobally) {
+                    console.log(`[UPDATE] Playing audio ${data.id}`);
+                    element.play().catch(e => console.warn('Autoplay blocked during update for audio element:', e));
+                } else if (!data.isPlaying && !element.paused) {
+                    console.log(`[UPDATE] Pausing audio ${data.id}`);
+                    element.pause();
+                }
+
+                if (selectedAudioElement && selectedAudioElement.id === data.id) {
+                    console.log(`[UPDATE] Updating UI for selected audio ${data.id}`);
+                    volumeRange.value = element.volume;
+                    volumeValueDisplay.textContent = `${Math.round(element.volume * 100)}%`;
+                    updatePlayPauseButton(element.paused);
+                    updateTimelineDisplay(element);
+                    currentAudioNameDisplay.textContent = element.dataset.originalName || 'Audio Seleccionado';
+                }
+                updateAudioPlaylistDisplay();
+            } else {
+                console.log(`[UPDATE] Updating properties of VISUAL element: ${data.id}`);
+                const elementWrapper = element;
+                elementWrapper.style.left = data.left;
+                elementWrapper.style.top = data.top;
+                elementWrapper.style.width = data.width;
+                elementWrapper.style.height = data.height;
+                elementWrapper.style.transform = data.rotation;
+                elementWrapper.style.zIndex = data.zIndex;
+                elementWrapper.dataset.originalName = data.originalName || '';
+                if (data.initialAspectRatio) { // Actualiza el aspect ratio si viene en la data
+                    elementWrapper.dataset.initialAspectRatio = data.initialAspectRatio;
+                }
+                if (data.publicId) { // Actualiza el publicId si viene en la data
+                    elementWrapper.dataset.publicId = data.publicId;
+                }
+
+
+                const contentElement = elementWrapper.querySelector('img.element-content, div.text-content.element-content');
+                if (!contentElement) {
+                    console.error(`Content element not found inside wrapper ${data.id} for update.`);
+                    return;
+                }
+                contentElement.style.opacity = data.opacity;
+
+                if (data.type === 'img') {
+                    contentElement.src = data.src; // Actualiza la URL de la imagen
+                } else if (data.type === 'text') {
+                    contentElement.textContent = data.textContent;
+                    contentElement.style.color = data.color;
+                    contentElement.style.backgroundColor = data.backgroundColor;
+                    contentElement.style.fontSize = data.fontSize;
+
+                    if (data.isBold) contentElement.classList.add('font-bold');
+                    else contentElement.classList.remove('font-bold');
+
+                    if (data.isItalic) contentElement.classList.add('italic');
+                    else contentElement.classList.remove('italic');
+
+                    if (data.hasTextOutline && parseFloat(data.outlineThickness) > 0) {
+                        contentElement.style.webkitTextStrokeWidth = data.outlineThickness;
+                        contentElement.style.webkitTextStrokeColor = data.outlineColor;
+                        contentElement.style.textShadow = generateTextShadowForOutline(parseFloat(data.outlineThickness), data.outlineColor);
+                    } else {
+                        contentElement.style.webkitTextStrokeWidth = '0';
+                        contentElement.style.webkitTextStrokeColor = 'transparent';
+                        contentElement.style.textShadow = 'none';
+                    }
+                    adjustTextElementWrapperSize(elementWrapper);
+
+                    if (selectedElementWrapper && selectedElementWrapper.id === data.id) {
+                        textInput.value = data.textContent;
+                        textColorInput.value = data.color;
+                        textBgColorInput.value = data.backgroundColor;
+                        toggleTextBg.checked = data.hasTextBackground;
+                        const event = new Event('change');
+                        toggleTextBg.dispatchEvent(event);
+                        toggleTextOutline.checked = data.hasTextOutline;
+                        textOutlineColorInput.value = data.outlineColor;
+                        outlineThicknessRange.value = parseFloat(data.outlineThickness);
+                        outlineThicknessValue.textContent = `${outlineThicknessRange.value}px`;
+                        toggleTextOutline.dispatchEvent(event);
+                        fontSizeRange.value = parseFloat(data.fontSize);
+                        fontSizeValue.textContent = `${fontSizeRange.value}px`;
+
+                        if (data.isBold) boldTextBtn.classList.add('active-style');
+                        else boldTextBtn.classList.remove('active-style');
+
+                        if (data.isItalic) italicTextBtn.classList.add('active-style');
+                        else italicTextBtn.classList.remove('active-style');
+                    }
+                }
+                if (selectedElementWrapper && selectedElementWrapper.id === data.id) {
+                    selectElement(elementWrapper);
+                }
+            }
+        }
+
+        function deleteElementFromData(elementId) {
+            console.log(`[DELETE] Initiating deletion for ID: ${elementId}`);
+            const element = allElements.get(elementId);
+            if (element) {
+                if (element.tagName === 'AUDIO') {
+                    console.log(`[DELETE] Element found as AUDIO. ID: ${elementId}`);
+                    element.pause();
+                    element.src = '';
+                    element.load();
+                    const listItem = audioPlaylist.querySelector(`.audio-list-item[data-id="${elementId}"]`);
+                    if (listItem) {
+                        console.log(`[DELETE] Removing audio list item from UI for ID: ${elementId}`);
+                        listItem.remove();
+                    } else {
+                        console.warn(`[DELETE] Audio list item not found in UI for ID: ${elementId}`);
+                    }
+                    if (selectedAudioElement && selectedAudioElement.id === elementId) {
+                        console.log(`[DELETE] Deselecting active audio. ID: ${elementId}`);
+                        selectedAudioElement = null;
+                        deselectAudioControls();
+                    }
+                    allElements.delete(elementId);
+                    console.log(`[DELETE] Element ID ${elementId} removed from allElements map. Current size: ${allElements.size}`);
+                    updateAudioPlaylistDisplay();
+                    updateFileCountDisplay();
+                } else if (element.classList && element.classList.contains('element-wrapper')) {
+                    console.log(`[DELETE] Element found as VISUAL (wrapper). ID: ${elementId}`);
+                    const contentElement = element.querySelector('.element-content');
+                    if (contentElement && contentElement.tagName === 'AUDIO') {
+                        console.warn('Audio found inside a visual wrapper. This case should be rare now.');
+                        contentElement.pause();
+                        contentElement.src = '';
+                        contentElement.load();
+                    }
+                    element.remove();
+                    if (selectedElementWrapper && selectedElementWrapper.id === elementId) {
+                        console.log(`[DELETE] Deselecting active visual element. ID: ${elementId}`);
+                        deselectAllElements();
+                    }
+                    allElements.delete(elementId);
+                    console.log(`[DELETE] Element ID ${elementId} removed from allElements map. Current size: ${allElements.size}`);
+                    updateLayersList();
+                    updateFileCountDisplay();
+                }
+            } else {
+                console.warn(`[DELETE] Element with ID: ${elementId} not found in allElements.`);
+            }
+        }
+
+        function updatePlayPauseButton(isPaused) {
+            if (isPaused) {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            } else {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            }
+        }
+
+        function updateTimelineDisplay(audioElement) {
+            if (!isNaN(audioElement.duration)) {
+                timelineRange.max = audioElement.duration;
+                timelineRange.value = audioElement.currentTime;
+                currentTimeDisplay.textContent = `${formatTime(audioElement.currentTime)} / ${formatTime(audioElement.duration)}`;
+            } else {
+                currentTimeDisplay.textContent = `0:00 / 0:00`;
+            }
+        }
+
+        function applyGlobalMuteState() {
+            allElements.forEach(element => {
+                if (element.tagName === 'AUDIO') {
+                    element.muted = isMutedGlobally;
+                    if (selectedAudioElement && selectedAudioElement.id === element.id) {
+                         volumeRange.value = element.volume;
+                         volumeValueDisplay.textContent = `${Math.round(element.volume * 100)}%`;
+                    }
+                }
+            });
+            saveElementsState();
+        }
+
+        function deselectAllElements() {
+            console.log("[DESELECT] Deselecting all elements (visual and audio controls).");
+            document.querySelectorAll('.element-wrapper').forEach(el => {
+                el.classList.remove('selected');
+                el.querySelectorAll('.resize-handle').forEach(handle => handle.style.display = 'none');
+                el.querySelector('.rotation-handle').style.display = 'none';
+            });
+            document.querySelectorAll('.layer-item').forEach(item => item.classList.remove('selected'));
+
+            selectedElementWrapper = null;
+
+            opacityRange.value = 1;
+            opacityValue.textContent = '100%';
+            rotationRange.value = 0;
+            rotationValue.textContent = '0°';
+            opacityRange.disabled = true;
+            rotationRange.disabled = true;
+            duplicateElementBtn.disabled = true;
+            deleteElementBtn.disabled = true;
+            resetOpacityBtn.disabled = true;
+            resetRotationBtn.disabled = true;
+            bringToFrontBtn.disabled = true;
+
+            textInput.disabled = false;
+            textInput.value = '';
+            textColorInput.value = '#FFFFFF';
+            textBgColorInput.value = '#000000';
+            toggleTextBg.checked = false;
+            toggleTextOutline.checked = false;
+            textOutlineColorInput.value = '#000000';
+            outlineThicknessRange.value = 0;
+            outlineThicknessValue.textContent = '0px';
+            fontSizeRange.value = 24;
+            fontSizeValue.textContent = '24px';
+            boldTextBtn.classList.remove('active-style');
+            italicTextBtn.classList.remove('active-style');
+            textColorInput.disabled = false;
+            boldTextBtn.disabled = false;
+            italicTextBtn.disabled = false;
+            toggleTextBg.disabled = false;
+            toggleTextOutline.disabled = false;
+            fontSizeRange.disabled = false;
+
+            textBgColorInput.disabled = !toggleTextBg.checked;
+            textOutlineColorInput.disabled = !toggleTextOutline.checked;
+            outlineThicknessRange.disabled = !toggleTextOutline.checked;
+            textBgColorLabel.classList.add('text-gray-600');
+            textBgColorLabel.classList.remove('text-gray-300');
+            textOutlineColorLabel.classList.add('text-gray-600');
+            textOutlineColorLabel.classList.remove('text-gray-300');
+            outlineThicknessLabel.classList.add('text-gray-600');
+            outlineThicknessLabel.classList.remove('text-gray-300');
+
+            document.querySelectorAll('.audio-list-item').forEach(item => item.classList.remove('selected'));
+            deselectAudioControls();
+
+            if (textInput.value === '') {
+            }
+        }
+
+        function deselectAudioControls() {
+            console.log("[DESELECT] Deselecting audio controls.");
+            selectedAudioElement = null;
+            playPauseBtn.disabled = true;
+            volumeRange.disabled = true;
+            timelineRange.disabled = true;
+            currentAudioNameDisplay.textContent = '';
+            volumeRange.value = 0.5;
+            volumeValueDisplay.textContent = '50%';
+            timelineRange.value = 0;
+            currentTimeDisplay.textContent = '0:00 / 0:00';
+            updatePlayPauseButton(true);
+        }
+
+
+        function selectElement(element) {
+            console.log(`[SELECT] Attempting to select element ID: ${element.id}, type: ${element.tagName}`);
+            deselectAllElements();
+
+            if (element.classList && element.classList.contains('element-wrapper')) {
+                console.log(`[SELECT] Selecting VISUAL element: ${element.id}`);
+                selectedElementWrapper = element;
+                selectedElementWrapper.classList.add('selected');
+
+                const contentElement = selectedElementWrapper.querySelector('img.element-content, div.text-content.element-content');
+                if (!contentElement) {
+                    console.error("Could not find content element for selected wrapper:", selectedElementWrapper.id);
+                    return;
+                }
+
+                selectedElementWrapper.querySelector('.rotation-handle').style.display = 'block';
+                rotationRange.disabled = false;
+                if (!contentElement.classList.contains('text-content')) {
+                    selectedElementWrapper.querySelectorAll('.resize-handle').forEach(handle => handle.style.display = 'block');
+                } else {
+                    selectedElementWrapper.querySelectorAll('.resize-handle').forEach(handle => handle.style.display = 'none');
+                }
+
+                opacityRange.disabled = false;
+                duplicateElementBtn.disabled = false;
+                deleteElementBtn.disabled = false;
+                resetOpacityBtn.disabled = false;
+                resetRotationBtn.disabled = false;
+                bringToFrontBtn.disabled = false;
+
+                opacityRange.value = parseFloat(contentElement.style.opacity) || 1;
+                opacityValue.textContent = `${Math.round(opacityRange.value * 100)}%`;
+                rotationRange.value = getRotation(selectedElementWrapper) || 0;
+                rotationValue.textContent = `${Math.round(rotationRange.value)}°`;
+
+                if (contentElement.classList.contains('text-content')) {
+                    textInput.disabled = false;
+                    textInput.value = contentElement.textContent;
+                    textColorInput.disabled = false;
+                    boldTextBtn.disabled = false;
+                    italicTextBtn.disabled = false;
+                    toggleTextBg.disabled = false;
+                    toggleTextOutline.disabled = false;
+                    fontSizeRange.disabled = false;
+
+                    textColorInput.value = contentElement.style.color || '#FFFFFF';
+
+                    if (contentElement.style.backgroundColor === 'transparent') {
+                        toggleTextBg.checked = false;
+                        textBgColorInput.value = '#000000';
+                        textBgColorInput.disabled = true;
+                        textBgColorLabel.classList.add('text-gray-600');
+                        textBgColorLabel.classList.remove('text-gray-300');
+                    } else {
+                        toggleTextBg.checked = true;
+                        textBgColorInput.value = contentElement.style.backgroundColor || '#000000';
+                        textBgColorInput.disabled = false;
+                        textBgColorLabel.classList.remove('text-gray-600');
+                        textBgColorLabel.classList.add('text-gray-300');
+                    }
+
+                    if (contentElement.style.webkitTextStrokeWidth && parseFloat(contentElement.style.webkitTextStrokeWidth) > 0) {
+                        toggleTextOutline.checked = true;
+                        textOutlineColorInput.value = contentElement.style.webkitTextStrokeColor || '#000000';
+                        outlineThicknessRange.value = parseFloat(contentElement.style.webkitTextStrokeWidth);
+                        outlineThicknessValue.textContent = `${outlineThicknessRange.value}px`;
+                        textOutlineColorInput.disabled = false;
+                        outlineThicknessRange.disabled = false;
+                        textOutlineColorLabel.classList.remove('text-gray-600');
+                        textOutlineColorLabel.classList.add('text-gray-300');
+                        outlineThicknessLabel.classList.remove('text-gray-600');
+                        outlineThicknessLabel.classList.add('text-gray-300');
+                    } else {
+                        toggleTextOutline.checked = false;
+                        textOutlineColorInput.value = '#000000';
+                        outlineThicknessRange.value = 0;
+                        outlineThicknessValue.textContent = '0px';
+                        textOutlineColorInput.disabled = true;
+                        outlineThicknessRange.disabled = true;
+                        textOutlineColorLabel.classList.add('text-gray-600');
+                        textOutlineColorLabel.classList.remove('text-gray-300');
+                        outlineThicknessLabel.classList.add('text-gray-600');
+                        outlineThicknessLabel.classList.remove('text-gray-300');
+                    }
+
+                    fontSizeRange.value = parseFloat(contentElement.style.fontSize) || 24;
+                    fontSizeValue.textContent = `${fontSizeRange.value}px`;
+
+                    if (contentElement.classList.contains('font-bold')) {
+                        boldTextBtn.classList.add('active-style');
+                    } else {
+                        boldTextBtn.classList.remove('active-style');
+                    }
+                    if (contentElement.classList.contains('italic')) {
+                        italicTextBtn.classList.add('active-style');
+                    } else {
+                        italicTextBtn.classList.remove('active-style');
+                    }
+                    adjustTextElementWrapperSize(selectedElementWrapper);
+                } else {
+                    textInput.disabled = true;
+                    textColorInput.disabled = true;
+                    boldTextBtn.disabled = true;
+                    italicTextBtn.disabled = true;
+                    toggleTextBg.disabled = true;
+                    toggleTextOutline.disabled = true;
+                    fontSizeRange.disabled = true;
+                    textBgColorInput.disabled = true;
+                    textOutlineColorInput.disabled = true;
+                    outlineThicknessRange.disabled = true;
+                    textBgColorLabel.classList.add('text-gray-600');
+                    textBgColorLabel.classList.remove('text-gray-300');
+                    textOutlineColorLabel.classList.add('text-gray-600');
+                    textOutlineColorLabel.classList.remove('text-gray-300');
+                    outlineThicknessLabel.classList.add('text-gray-600');
+                    outlineThicknessLabel.classList.remove('text-gray-300');
+                }
+
+                deselectAudioControls();
+
+                const layerItem = document.querySelector(`.layer-item[data-id="${element.id}"]`);
+                if (layerItem) {
+                    layerItem.classList.add('selected');
+                }
+            }
+        }
+
+        function selectAudioElement(audioElement) {
+            console.log(`[SELECT] Selecting AUDIO element: ${audioElement.id}`);
+            deselectAllElements();
+
+            selectedAudioElement = audioElement;
+            document.querySelectorAll('.audio-list-item').forEach(item => item.classList.remove('selected'));
+            const listItem = audioPlaylist.querySelector(`.audio-list-item[data-id="${audioElement.id}"]`);
+            if (listItem) {
+                listItem.classList.add('selected');
+            }
+
+            opacityRange.disabled = true;
+            rotationRange.disabled = true;
+            duplicateElementBtn.disabled = true;
+            bringToFrontBtn.disabled = true;
+            resetOpacityBtn.disabled = true;
+            resetRotationBtn.disabled = true;
+
+            textInput.disabled = true;
+            textColorInput.disabled = true;
+            boldTextBtn.disabled = true;
+            italicTextBtn.disabled = true;
+            toggleTextBg.disabled = true;
+            toggleTextOutline.disabled = true;
+            fontSizeRange.disabled = true;
+            textBgColorInput.disabled = true;
+            textOutlineColorInput.disabled = true;
+            outlineThicknessRange.disabled = true;
+            textBgColorLabel.classList.add('text-gray-600');
+            textBgColorLabel.classList.remove('text-gray-300');
+            textOutlineColorLabel.classList.add('text-gray-600');
+            textOutlineColorLabel.classList.remove('text-gray-300');
+            outlineThicknessLabel.classList.add('text-gray-600');
+            outlineThicknessLabel.classList.remove('text-gray-300');
+
+
+            playPauseBtn.disabled = false;
+            volumeRange.disabled = false;
+            timelineRange.disabled = false;
+
+            audioElement.muted = isMutedGlobally;
+            volumeRange.value = audioElement.volume;
+            volumeValueDisplay.textContent = `${Math.round(audioElement.volume * 100)}%`;
+            updatePlayPauseButton(audioElement.paused);
+            updateTimelineDisplay(audioElement);
+            currentAudioNameDisplay.textContent = audioElement.dataset.originalName || 'Audio Seleccionado';
+        }
+
+
+        function getRotation(element) {
+            const transform = element.style.transform;
+            const match = transform.match(/rotate\(([-?\d.]+)deg\)/);
+            return match ? parseFloat(match[1]) : 0;
+        }
+
+        function addHandles(elementWrapper) {
+            const handles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+            handles.forEach(pos => {
+                const handle = document.createElement('div');
+                handle.classList.add('resize-handle', pos);
+                handle.style.display = 'none';
+                elementWrapper.appendChild(handle);
+            });
+
+            const rotationHandle = document.createElement('div');
+            rotationHandle.classList.add('rotation-handle');
+            rotationHandle.style.display = 'none';
+            elementWrapper.appendChild(rotationHandle);
+        }
+
+        function updateLayersList() {
+            console.log("[LAYERS] Updating layers list.");
+            layersList.innerHTML = '';
+
+            const visualElements = Array.from(allElements.values()).filter(el => el.classList && el.classList.contains('element-wrapper'));
+
+            if (visualElements.length === 0) {
+                layersList.innerHTML = '<p class="text-gray-400 text-sm">No hay elementos en la página.</p>';
+                return;
+            }
+
+            const sortedElements = visualElements.sort((a, b) => {
+                return (parseFloat(b.style.zIndex || 0)) - (parseFloat(a.style.zIndex || 0));
+            });
+
+            sortedElements.forEach(elementWrapper => {
+                const contentElement = elementWrapper.querySelector('img.element-content, div.text-content.element-content');
+                const layerItem = document.createElement('div');
+                layerItem.classList.add('layer-item');
+                layerItem.dataset.id = elementWrapper.id;
+
+                let name;
+                if (contentElement && contentElement.tagName === 'IMG') {
+                    name = `Imagen: "${elementWrapper.dataset.originalName || contentElement.alt || elementWrapper.id}"`;
+                } else if (contentElement && contentElement.classList.contains('text-content')) {
+                    name = `Texto: "${contentElement.textContent.substring(0, 20)}${contentElement.textContent.length > 20 ? '...' : ''}"`;
+                } else {
+                    name = `Unknown element: ${elementWrapper.id}`;
+                }
+                layerItem.textContent = name;
+
+                if (selectedElementWrapper && selectedElementWrapper.id === elementWrapper.id) {
+                    layerItem.classList.add('selected');
+                }
+
+                layerItem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectElement(elementWrapper);
+                });
+
+                const dragHandle = document.createElement('span');
+                dragHandle.innerHTML = '&#9776;';
+                dragHandle.classList.add('drag-handle', 'mr-2', 'cursor-move', 'text-gray-400', 'hover:text-white');
+                dragHandle.setAttribute('draggable', 'true');
+                layerItem.prepend(dragHandle);
+
+                layersList.appendChild(layerItem);
+            });
+        }
+
+        function updateAudioPlaylistDisplay() {
+            console.log("[AUDIO_PLAYLIST] Updating audio playlist display.");
+            audioPlaylist.innerHTML = '';
+
+            const audioElements = Array.from(allElements.values()).filter(el => el.tagName === 'AUDIO');
+            console.log(`[AUDIO_PLAYLIST] Found ${audioElements.length} audio elements.`);
+
+            if (audioElements.length === 0) {
+                audioPlaylist.innerHTML = '<p class="text-gray-400 text-sm">No hay audios subidos.</p>';
+                return;
+            }
+
+            audioElements.forEach(audioElement => {
+                addAudioItemToPlaylistUI(audioElement);
+            });
+        }
+
+
+        function updateFileCountDisplay() {
+            console.log("[FILE_COUNT] Updating file count display.");
+            fileCountDisplay.textContent = `${allElements.size}/${fileLimit}`;
+            if (allElements.size >= fileLimit) {
+                imageUpload.disabled = true;
+                imageUpload.parentElement.classList.add('opacity-50', 'cursor-not-allowed');
+                imageUpload.parentElement.style.pointerEvents = 'none';
+                selectFileButtonText.textContent = 'Límite alcanzado';
+                imageUpload.parentElement.classList.remove('hover:bg-purple-700');
+                dropArea.classList.add('opacity-50', 'cursor-not-allowed');
+                dropArea.style.pointerEvents = 'none';
+            } else {
+                imageUpload.disabled = false;
+                imageUpload.parentElement.classList.remove('opacity-50', 'cursor-not-allowed');
+                imageUpload.parentElement.style.pointerEvents = 'auto';
+                selectFileButtonText.textContent = 'Seleccionar archivo';
+                imageUpload.parentElement.classList.add('hover:bg-purple-700');
+                dropArea.classList.remove('opacity-50', 'cursor-not-allowed');
+                dropArea.style.pointerEvents = 'auto';
+            }
+        }
+
+        function handleFile(file) {
+            console.log(`[FILE_HANDLER] Processing file: ${file.name}, type: ${file.type}`);
+            if (allElements.size >= fileLimit) {
+                console.warn(`File upload limit reached (${fileLimit} files).`);
+                return;
+            }
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (file.type.startsWith('audio/')) {
+                        console.log(`[FILE_HANDLER] File is audio: ${file.name}`);
+                        const tempAudio = new Audio();
+                        tempAudio.src = e.target.result;
+                        tempAudio.addEventListener('loadedmetadata', () => {
+                            console.log(`[FILE_HANDLER] Audio metadata loaded for ${file.name}. Duration: ${tempAudio.duration}`);
+                            if (tempAudio.duration > 480) {
+                                console.warn(`Audio file "${file.name}" exceeds 8-minute limit (${formatTime(tempAudio.duration)}). Not added.`);
+                                return;
+                            }
+                            // Enviar Base64 al servidor para que lo suba a Cloudinary
+                            createAndAddElement(file, e.target.result, tempAudio.duration);
+                        }, { once: true });
+                        tempAudio.addEventListener('error', (err) => {
+                            console.error('Error loading audio metadata:', err);
+                        }, { once: true });
+                    } else {
+                        console.log(`[FILE_HANDLER] File is image/gif: ${file.name}`);
+                        // Enviar Base64 al servidor para que lo suba a Cloudinary
+                        createAndAddElement(file, e.target.result);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function createAndAddElement(file, srcData, audioDuration = null) {
+            const newId = generateUniqueId();
+            let elementState = {
+                id: newId,
+                originalName: file.name
+            };
+            console.log(`[ADD_ELEMENT] Creating new element with ID: ${newId}, Name: ${file.name}`);
+
+            if (file.type.startsWith('image/')) {
+                // Para imágenes, el cliente sigue enviando Base64. El servidor lo convertirá a URL de Cloudinary.
+                const img = new Image();
+                img.src = srcData;
+                img.onload = () => {
+                    const defaultInitialSize = 200;
+                    let finalWidth = img.naturalWidth;
+                    let finalHeight = img.naturalHeight;
+                    const aspectRatio = finalWidth / finalHeight;
+
+                    if (finalWidth > defaultInitialSize || finalHeight > defaultInitialSize) {
+                        if (finalWidth / defaultInitialSize > finalHeight / defaultInitialSize) {
+                            finalWidth = defaultInitialSize;
+                            finalHeight = finalWidth / aspectRatio;
+                        } else {
+                            finalHeight = defaultInitialSize;
+                            finalWidth = finalHeight * aspectRatio;
+                        }
+                    }
+
+                    const greenCanvasCenterX = leftSidebar.offsetWidth / 2;
+                    const greenCanvasCenterY = leftSidebar.offsetHeight / 2;
+                    const initialLeft = greenCanvasCenterX - (finalWidth / 2);
+                    const initialTop = greenCanvasCenterY - (finalHeight / 2);
+
+                    elementState = {
+                        ...elementState,
+                        left: `${initialLeft}px`,
+                        top: `${initialTop}px`,
+                        width: `${finalWidth}px`,
+                        height: `${finalHeight}px`,
+                        rotation: 'rotate(0deg)',
+                        zIndex: getNextHighestZIndex(),
+                        opacity: '1',
+                        type: 'img',
+                        src: srcData, // Se envía Base64 al servidor inicialmente
+                        initialAspectRatio: aspectRatio
+                    };
+                    sendWebSocketMessage('elementAdd', { element: elementState });
+                };
+                // Si la imagen está en caché, onload podría no dispararse.
+                if (img.complete) {
+                    img.onload();
+                }
+
+            } else if (file.type.startsWith('audio/')) {
+                // Para audios, el cliente sigue enviando Base64. El servidor lo convertirá a URL de Cloudinary.
+                elementState = {
+                    ...elementState,
+                    type: 'audio',
+                    src: srcData, // Se envía Base64 al servidor inicialmente
+                    volume: 0.5,
+                    currentTime: 0,
+                    paused: true,
+                    isPlaying: false,
+                    duration: audioDuration,
+                    lastVolume: 0.5,
+                    left: '0px', top: '0px', width: '0px', height: '0px',
+                    rotation: 'rotate(0deg)', zIndex: '0', opacity: '1'
+                };
+                sendWebSocketMessage('elementAdd', { element: elementState });
+            }
+        }
+
+
+        imageUpload.addEventListener('change', (event) => {
+            if (event.target.files.length > 0) {
+                handleFile(event.target.files[0]);
+                event.target.value = '';
+            }
+        });
+
+        addTextBtn.addEventListener('click', () => {
+            console.log("[ADD_TEXT] Add text button clicked.");
+            if (allElements.size >= fileLimit) {
+                console.warn(`File upload limit reached (${fileLimit} files).`);
+                return;
+            }
+
+            const textContent = textInput.value.trim() === '' ? 'New Text' : textInput.value;
+            const newId = generateUniqueId();
+
+            const greenCanvasCenterX = leftSidebar.offsetWidth / 2;
+            const greenCanvasCenterY = leftSidebar.offsetHeight / 2;
+            const initialLeft = greenCanvasCenterX - (100 / 2);
+            const initialTop = greenCanvasCenterY - (50 / 2);
+
+            const elementState = {
+                id: newId,
+                left: `${initialLeft}px`,
+                top: `${initialTop}px`,
+                width: 'auto', // Se ajustará dinámicamente en el cliente
+                height: 'auto', // Se ajustará dinámicamente en el cliente
+                rotation: 'rotate(0deg)',
+                zIndex: getNextHighestZIndex(),
+                opacity: '1',
+                originalName: 'Text Element',
+                type: 'text',
+                textContent: textContent,
+                color: textColorInput.value,
+                backgroundColor: toggleTextBg.checked ? textBgColorInput.value : 'transparent',
+                fontSize: `${fontSizeRange.value}px`,
+                isBold: boldTextBtn.classList.contains('active-style'),
+                isItalic: italicTextBtn.classList.contains('active-style'),
+                outlineThickness: toggleTextOutline.checked ? `${outlineThicknessRange.value}px` : '0',
+                outlineColor: toggleTextOutline.checked ? textOutlineColorInput.value : 'transparent',
+                hasTextBackground: toggleTextBg.checked,
+                hasTextOutline: toggleTextOutline.checked && parseFloat(outlineThicknessRange.value) > 0
+            };
+            sendWebSocketMessage('elementAdd', { element: elementState });
+        });
+
+        textInput.addEventListener('input', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement && contentElement.classList.contains('text-content')) {
+                    contentElement.textContent = textInput.value;
+                    adjustTextElementWrapperSize(selectedElementWrapper);
+                    updateLayersList();
+
+                    if (!pendingUpdateAnimationFrame) {
+                        pendingUpdateAnimationFrame = requestAnimationFrame(() => {
+                            sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                            pendingUpdateAnimationFrame = null;
+                        });
+                    }
+                }
+            }
+        });
+
+        function getElementState(element) {
+            if (!element) {
+                console.warn("[GET_STATE] Element is null, cannot get state.");
+                return null;
+            }
+
+            if (element.tagName === 'AUDIO') {
+                console.log(`[GET_STATE] Getting state for AUDIO element: ${element.id}`);
+                return {
+                    id: element.id,
+                    type: 'audio',
+                    src: element.src,
+                    volume: element.volume,
+                    currentTime: element.currentTime,
+                    paused: element.paused,
+                    isPlaying: !element.paused,
+                    duration: element.duration,
+                    lastVolume: element.dataset.lastVolume,
+                    originalName: element.dataset.originalName,
+                    publicId: element.dataset.publicId, // Incluir publicId
+                    left: '0px', top: '0px', width: '0px', height: '0px',
+                    rotation: 'rotate(0deg)', zIndex: '0', opacity: '1'
+                };
+            } else if (element.classList && element.classList.contains('element-wrapper')) {
+                console.log(`[GET_STATE] Getting state for VISUAL element: ${element.id}`);
+                const contentElement = element.querySelector('img.element-content, div.text-content.element-content');
+                if (!contentElement) {
+                    console.error(`Content element not found inside wrapper ${element.id} for getElementState.`);
+                    return null;
+                }
+
+                const state = {
+                    id: element.id,
+                    left: element.style.left,
+                    top: element.style.top,
+                    width: element.style.width,
+                    height: element.style.height,
+                    rotation: element.style.transform,
+                    zIndex: element.style.zIndex,
+                    opacity: contentElement.style.opacity,
+                    originalName: element.dataset.originalName || ''
+                };
+
+                if (contentElement.tagName === 'IMG') {
+                    state.type = 'img';
+                    state.src = contentElement.src;
+                    state.initialAspectRatio = element.dataset.initialAspectRatio;
+                    state.publicId = element.dataset.publicId; // Incluir publicId
+                } else if (contentElement.classList.contains('text-content')) {
+                    state.type = 'text';
+                    state.textContent = contentElement.textContent;
+                    state.color = contentElement.style.color;
+                    state.backgroundColor = contentElement.style.backgroundColor;
+                    state.fontSize = contentElement.style.fontSize;
+                    state.isBold = contentElement.classList.contains('font-bold');
+                    state.isItalic = contentElement.classList.contains('italic');
+                    state.outlineThickness = contentElement.style.webkitTextStrokeWidth;
+                    state.outlineColor = contentElement.style.webkitTextStrokeColor;
+                    state.hasTextBackground = (contentElement.style.backgroundColor !== 'transparent');
+                    state.hasTextOutline = (parseFloat(contentElement.style.webkitTextStrokeWidth) > 0);
+                }
+                return state;
+            }
+            console.warn(`[GET_STATE] Unknown element type for getElementState: ${element.tagName || element}`);
+            return null;
+        }
+
+        opacityRange.addEventListener('input', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement) {
+                    contentElement.style.opacity = opacityRange.value;
+                    opacityValue.textContent = `${Math.round(opacityRange.value * 100)}%`;
+                    if (!pendingUpdateAnimationFrame) {
+                        pendingUpdateAnimationFrame = requestAnimationFrame(() => {
+                            sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                            pendingUpdateAnimationFrame = null;
+                        });
+                    }
+                }
+            }
+        });
+
+        rotationRange.addEventListener('input', () => {
+            if (selectedElementWrapper) {
+                selectedElementWrapper.style.transform = `rotate(${rotationRange.value}deg)`;
+                rotationValue.textContent = `${Math.round(rotationRange.value)}°`;
+                 if (!pendingUpdateAnimationFrame) {
+                    pendingUpdateAnimationFrame = requestAnimationFrame(() => {
+                        sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                        pendingUpdateAnimationFrame = null;
+                    });
+                }
+            }
+        });
+
+        duplicateElementBtn.addEventListener('click', () => {
+            console.log("[DUPLICATE] Duplicate button clicked.");
+            if (allElements.size >= fileLimit) {
+                console.warn(`File upload limit reached (${fileLimit} files).`);
+                return;
+            }
+            if (selectedElementWrapper) {
+                if (selectedElementWrapper.tagName === 'AUDIO') {
+                    console.warn('Audio elements cannot be duplicated from the canvas.');
+                    return;
+                }
+
+                const originalState = getElementState(selectedElementWrapper);
+                if (!originalState) return;
+
+                const newId = generateUniqueId();
+                const clonedState = {
+                    ...originalState,
+                    id: newId,
+                    left: `${parseFloat(selectedElementWrapper.style.left) + 20}px`,
+                    top: `${parseFloat(selectedElementWrapper.style.top) + 20}px`,
+                    zIndex: getNextHighestZIndex()
+                };
+
+                // Si es una imagen o audio, el publicId se mantiene en la duplicación para que
+                // el servidor sepa que es una referencia al mismo archivo en Cloudinary
+                // y no necesite subirlo de nuevo.
+                // El servidor no creará un nuevo archivo en Cloudinary, pero sí guardará el nuevo elemento en Firestore
+                sendWebSocketMessage('elementAdd', { element: clonedState });
+            }
+        });
+
+        deleteElementBtn.addEventListener('click', () => {
+            console.log("[DELETE_ELEMENT] Delete element (visual) button clicked.");
+            if (selectedElementWrapper) {
+                const deletedId = selectedElementWrapper.id;
+                deleteElementFromData(deletedId);
+                sendWebSocketMessage('elementDelete', { elementId: deletedId });
+            } else {
+                console.warn('The "Delete element" button only affects visual canvas elements. For audios, use the specific button.');
+            }
+        });
+
+        textColorInput.addEventListener('input', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement && contentElement.classList.contains('text-content')) {
+                    contentElement.style.color = textColorInput.value;
+                    contentElement.style.webkitTextFillColor = textColorInput.value;
+                    if (toggleTextOutline.checked) {
+                        contentElement.style.textShadow = generateTextShadowForOutline(outlineThicknessRange.value, textOutlineColorInput.value);
+                    }
+                    adjustTextElementWrapperSize(selectedElementWrapper);
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            }
+        });
+
+        textBgColorInput.addEventListener('input', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement && contentElement.classList.contains('text-content')) {
+                    contentElement.style.backgroundColor = textBgColorInput.value;
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            }
+        });
+
+        boldTextBtn.addEventListener('click', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement && contentElement.classList.contains('text-content')) {
+                    contentElement.classList.toggle('font-bold');
+                    adjustTextElementWrapperSize(selectedElementWrapper);
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            }
+            boldTextBtn.classList.toggle('active-style');
+        });
+
+        italicTextBtn.addEventListener('click', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement && contentElement.classList.contains('text-content')) {
+                    contentElement.classList.toggle('italic');
+                    adjustTextElementWrapperSize(selectedElementWrapper);
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            }
+            italicTextBtn.classList.toggle('active-style');
+        });
+
+        toggleTextBg.addEventListener('change', () => {
+            if (selectedElementWrapper) {
+                const textElement = selectedElementWrapper.querySelector('.element-content');
+                if (textElement && textElement.classList.contains('text-content')) {
+                    if (toggleTextBg.checked) {
+                        textElement.style.backgroundColor = textBgColorInput.value;
+                        textBgColorInput.disabled = false;
+                        textBgColorLabel.classList.remove('text-gray-600');
+                        textBgColorLabel.classList.add('text-gray-300');
+                    } else {
+                        textElement.style.backgroundColor = 'transparent';
+                        textBgColorInput.disabled = true;
+                        textBgColorLabel.classList.add('text-gray-600');
+                        textBgColorLabel.classList.remove('text-gray-300');
+                    }
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            } else {
+                 textBgColorInput.disabled = !toggleTextBg.checked;
+                 if (toggleTextBg.checked) {
+                     textBgColorLabel.classList.remove('text-gray-600');
+                     textBgColorLabel.classList.add('text-gray-300');
+                 } else {
+                     textBgColorLabel.classList.add('text-gray-600');
+                     textBgColorLabel.classList.remove('text-gray-300');
+                 }
+            }
+        });
+
+        toggleTextOutline.addEventListener('change', () => {
+            if (selectedElementWrapper) {
+                const textElement = selectedElementWrapper.querySelector('.element-content');
+                if (textElement && textElement.classList.contains('text-content')) {
+                    if (toggleTextOutline.checked) {
+                        const thickness = outlineThicknessRange.value;
+                        const color = textOutlineColorInput.value;
+                        textElement.style.webkitTextStrokeWidth = `${thickness}px`;
+                        textElement.style.webkitTextStrokeColor = color;
+                        textElement.style.textShadow = generateTextShadowForOutline(thickness, color);
+                        textOutlineColorInput.disabled = false;
+                        outlineThicknessRange.disabled = false;
+                        textOutlineColorLabel.classList.remove('text-gray-600');
+                        textOutlineColorLabel.classList.add('text-gray-300');
+                        outlineThicknessLabel.classList.remove('text-gray-600');
+                        outlineThicknessLabel.classList.add('text-gray-300');
+                    } else {
+                        textElement.style.webkitTextStrokeWidth = '0';
+                        textElement.style.webkitTextStrokeColor = 'transparent';
+                        textElement.style.textShadow = 'none';
+                        textOutlineColorInput.disabled = true;
+                        outlineThicknessRange.disabled = true;
+                        textOutlineColorLabel.classList.add('text-gray-600');
+                        textOutlineColorLabel.classList.remove('text-gray-300');
+                        outlineThicknessLabel.classList.add('text-gray-600');
+                        outlineThicknessLabel.classList.remove('text-gray-300');
+                    }
+                    adjustTextElementWrapperSize(selectedElementWrapper);
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            } else {
+                textOutlineColorInput.disabled = !toggleTextOutline.checked;
+                outlineThicknessRange.disabled = !toggleTextOutline.checked;
+                if (toggleTextOutline.checked) {
+                    textOutlineColorLabel.classList.remove('text-gray-600');
+                    textOutlineColorLabel.classList.add('text-gray-300');
+                    outlineThicknessLabel.classList.remove('text-gray-600');
+                    outlineThicknessLabel.classList.add('text-gray-300');
+                } else {
+                    textOutlineColorLabel.classList.add('text-gray-600');
+                    textOutlineColorLabel.classList.remove('text-gray-300');
+                    outlineThicknessLabel.classList.add('text-gray-600');
+                    outlineThicknessLabel.classList.remove('text-gray-300');
+                }
+            }
+        });
+
+        textOutlineColorInput.addEventListener('input', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement && contentElement.classList.contains('text-content') && toggleTextOutline.checked) {
+                    contentElement.style.webkitTextStrokeColor = textOutlineColorInput.value;
+                    contentElement.style.textShadow = generateTextShadowForOutline(outlineThicknessRange.value, textOutlineColorInput.value);
+                    adjustTextElementWrapperSize(selectedElementWrapper);
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            }
+        });
+
+        outlineThicknessRange.addEventListener('input', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement && contentElement.classList.contains('text-content') && toggleTextOutline.checked) {
+                    const thickness = outlineThicknessRange.value;
+                    const color = textOutlineColorInput.value;
+                    contentElement.style.webkitTextStrokeWidth = `${thickness}px`;
+                    contentElement.style.webkitTextStrokeColor = color;
+                    contentElement.style.textShadow = generateTextShadowForOutline(thickness, color);
+                    outlineThicknessValue.textContent = `${thickness}px`;
+                    adjustTextElementWrapperSize(selectedElementWrapper);
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            } else {
+                outlineThicknessValue.textContent = `${outlineThicknessRange.value}px`;
+            }
+        });
+
+        fontSizeRange.addEventListener('input', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement && contentElement.classList.contains('text-content')) {
+                    contentElement.style.fontSize = `${fontSizeRange.value}px`;
+                    adjustTextElementWrapperSize(selectedElementWrapper);
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            }
+            fontSizeValue.textContent = `${fontSizeRange.value}px`;
+        });
+
+        resetOpacityBtn.addEventListener('click', () => {
+            if (selectedElementWrapper) {
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement) {
+                    contentElement.style.opacity = '1';
+                    opacityRange.value = 1;
+                    opacityValue.textContent = '100%';
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            }
+        });
+
+        resetRotationBtn.addEventListener('click', () => {
+            if (selectedElementWrapper) {
+                selectedElementWrapper.style.transform = 'rotate(0deg)';
+                rotationRange.value = 0;
+                rotationValue.textContent = '0°';
+                sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+            }
+        });
+
+        playPauseBtn.addEventListener('click', () => {
+            console.log("[PLAY_PAUSE] Play/Pause button clicked.");
+            if (selectedAudioElement) {
+                if (selectedAudioElement.paused) {
+                    allElements.forEach(element => {
+                        if (element.tagName === 'AUDIO' && element !== selectedAudioElement && !element.paused) {
+                            element.pause();
+                            sendWebSocketMessage('elementUpdate', { element: getElementState(element) });
+                        }
+                    });
+                    selectedAudioElement.play().catch(e => {
+                        console.error('Error playing audio (possible browser autoplay restriction):', e);
+                    });
+                } else {
+                    selectedAudioElement.pause();
+                }
+                updatePlayPauseButton(selectedAudioElement.paused);
+                sendWebSocketMessage('elementUpdate', { element: getElementState(selectedAudioElement) });
+            }
+        });
+
+        volumeRange.addEventListener('input', () => {
+            if (selectedAudioElement) {
+                selectedAudioElement.volume = parseFloat(volumeRange.value);
+                selectedAudioElement.dataset.lastVolume = volumeRange.value;
+                
+                if (parseFloat(volumeRange.value) === 0) {
+                    selectedAudioElement.muted = true;
+                } else {
+                    selectedAudioElement.muted = isMutedGlobally;
+                }
+                volumeValueDisplay.textContent = `${Math.round(volumeRange.value * 100)}%`;
+                sendWebSocketMessage('elementUpdate', { element: getElementState(selectedAudioElement) });
+            }
+        });
+
+        timelineRange.addEventListener('input', () => {
+            if (selectedAudioElement) {
+                selectedAudioElement.currentTime = timelineRange.value;
+                updateTimelineDisplay(selectedAudioElement);
+                sendWebSocketMessage('elementUpdate', { element: getElementState(selectedAudioElement) });
+            }
+        });
+
+        bringToFrontBtn.addEventListener('click', () => {
+            if (selectedElementWrapper) {
+                selectedElementWrapper.style.zIndex = getNextHighestZIndex();
+                updateLayersList();
+                selectElement(selectedElementWrapper);
+                sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                const updatedElementsForReorder = Array.from(allElements.values())
+                                                    .filter(el => el.classList && el.classList.contains('element-wrapper'))
+                                                    .map(el => ({ id: el.id, zIndex: el.style.zIndex }));
+                sendWebSocketMessage('reorderLayers', { elements: updatedElementsForReorder });
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            const target = e.target;
+            const clickedWrapper = target.closest('.element-wrapper');
+            const clickedAudioListItem = target.closest('.audio-list-item');
+
+            const wrapperRect = mainCanvasWrapper.getBoundingClientRect();
+            const mouseXOnUnscaledWrapper = (e.clientX - wrapperRect.left) / currentZoom;
+            const mouseYOnUnscaledWrapper = (e.clientY - wrapperRect.top) / currentZoom;
+
+            if (clickedWrapper) {
+                e.stopPropagation();
+
+                if (target.classList.contains('resize-handle')) {
+                    e.preventDefault();
+                    isResizing = true;
+                    selectElement(clickedWrapper);
+                    activeHandle = Array.from(target.classList).find(cls => cls.startsWith('top-') || cls.startsWith('bottom-'));
+                    initialMouseX = mouseXOnUnscaledWrapper;
+                    initialMouseY = mouseYOnUnscaledWrapper;
+                    initialLeft = selectedElementWrapper.offsetLeft;
+                    initialTop = selectedElementWrapper.offsetTop;
+                    initialWidth = selectedElementWrapper.offsetWidth;
+                    initialHeight = selectedElementWrapper.offsetHeight;
+                    return;
+                }
+
+                if (target.classList.contains('rotation-handle')) {
+                    e.preventDefault();
+                    isRotating = true;
+                    selectElement(clickedWrapper);
+                    const rect = selectedElementWrapper.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    initialRotationAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+                    initialElementRotation = getRotation(selectedElementWrapper);
+                    return;
+                }
+
+                e.preventDefault();
+                isDragging = true;
+                selectElement(clickedWrapper);
+                initialMouseX = mouseXOnUnscaledWrapper;
+                initialMouseY = mouseYOnUnscaledWrapper;
+                initialLeft = selectedElementWrapper.offsetLeft;
+                initialTop = selectedElementWrapper.offsetTop;
+            } else if (clickedAudioListItem) {
+                 e.stopPropagation();
+            }
+            else {
+                if (!target.closest('aside') && !target.closest('.zoom-controls') && !target.closest('.modal-overlay')) {
+                    deselectAllElements();
+                }
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            const wrapperRect = mainCanvasWrapper.getBoundingClientRect();
+            const currentMouseXOnUnscaledWrapper = (e.clientX - wrapperRect.left) / currentZoom;
+            const currentMouseYOnUnscaledWrapper = (e.clientY - wrapperRect.top) / currentZoom;
+
+            const now = Date.now();
+            if (now - lastCursorSendTime > cursorThrottleTime) {
+                sendWebSocketMessage('cursorMove', {
+                    userId: myUserId,
+                    x: currentMouseXOnUnscaledWrapper,
+                    y: currentMouseYOnUnscaledWrapper
+                });
+                lastCursorSendTime = now;
+            }
+
+            if (isDragging && selectedElementWrapper) {
+                e.preventDefault();
+                const dx = currentMouseXOnUnscaledWrapper - initialMouseX;
+                const dy = currentMouseYOnUnscaledWrapper - initialMouseY;
+
+                let newLeft = initialLeft + dx;
+                let newTop = initialTop + dy;
+
+                selectedElementWrapper.style.left = `${newLeft}px`;
+                selectedElementWrapper.style.top = `${newTop}px`;
+
+                if (!pendingUpdateAnimationFrame) {
+                    pendingUpdateAnimationFrame = requestAnimationFrame(() => {
+                        sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                        pendingUpdateAnimationFrame = null;
+                    });
+                }
+            } else if (isResizing && selectedElementWrapper) {
+                e.preventDefault();
+                const dx = currentMouseXOnUnscaledWrapper - initialMouseX;
+                const dy = currentMouseYOnUnscaledWrapper - initialMouseY;
+
+                let newWidth = initialWidth;
+                let newHeight = initialHeight;
+                let newLeft = initialLeft;
+                let newTop = initialTop;
+
+                const contentElement = selectedElementWrapper.querySelector('.element-content');
+                if (contentElement && (contentElement.tagName === 'IMG')) {
+                    const originalImageAspectRatio = parseFloat(selectedElementWrapper.dataset.initialAspectRatio);
+
+                    let potentialNewWidth = initialWidth + (activeHandle.includes('left') ? -dx : dx);
+                    let potentialNewHeight = initialHeight + (activeHandle.includes('top') ? -dy : dy);
+
+                    if (Math.abs(potentialNewWidth - initialWidth) > Math.abs(potentialNewHeight - initialHeight)) {
+                        newWidth = potentialNewWidth;
+                        newHeight = newWidth / originalImageAspectRatio;
+                    } else {
+                        newHeight = potentialNewHeight;
+                        newWidth = newHeight * originalImageAspectRatio;
+                    }
+
+                    newWidth = Math.max(20, newWidth);
+                    newHeight = Math.max(20, newHeight);
+
+                    if (activeHandle.includes('left')) {
+                        newLeft = initialLeft + initialWidth - newWidth;
+                    }
+                    if (activeHandle.includes('top')) {
+                        newTop = initialTop + initialHeight - newHeight;
+                    }
+
+                } else if (contentElement && contentElement.classList.contains('text-content')) {
+                    switch (activeHandle) {
+                        case 'top-left':
+                            newWidth = initialWidth - dx;
+                            newHeight = initialHeight - dy;
+                            newLeft = initialLeft + dx;
+                            newTop = initialTop + dy;
+                            break;
+                        case 'top-right':
+                            newWidth = initialWidth + dx;
+                            newHeight = initialHeight - dy;
+                            newTop = initialTop + dy;
+                            break;
+                        case 'bottom-left':
+                            newWidth = initialWidth - dx;
+                            newHeight = initialHeight + dy;
+                            newLeft = initialLeft + dx;
+                            break;
+                        case 'bottom-right':
+                            newWidth = initialWidth + dx;
+                            newHeight = initialHeight + dy;
+                            break;
+                    }
+
+                    const textElement = contentElement;
+                    const tempDiv = document.createElement('div');
+                    tempDiv.style.position = 'absolute';
+                    tempDiv.style.visibility = 'hidden';
+                    tempDiv.style.whiteSpace = 'pre-wrap';
+                    tempDiv.style.wordBreak = 'break-word';
+                    tempDiv.style.boxSizing = 'border-box';
+                    tempDiv.style.fontSize = window.getComputedStyle(textElement).fontSize;
+                    tempDiv.style.fontWeight = window.getComputedStyle(textElement).fontWeight;
+                    tempDiv.style.fontStyle = window.getComputedStyle(textElement).fontStyle;
+                    tempDiv.style.fontFamily = window.getComputedStyle(textElement).fontFamily;
+                    tempDiv.style.lineHeight = '1';
+                    tempDiv.style.textAlign = 'center';
+                    tempDiv.style.display = 'flex';
+                    tempDiv.style.alignItems = 'center';
+                    tempDiv.style.justifyContent = 'center';
+
+                    const outlineThickness = parseFloat(textElement.style.webkitTextStrokeWidth) || 0;
+                    const outlineColor = textElement.style.webkitTextStrokeColor || '#000000';
+                    if (outlineThickness > 0) {
+                        tempDiv.style.webkitTextStrokeWidth = `${outlineThickness}px`;
+                        tempDiv.style.webkitTextStrokeColor = outlineColor;
+                        tempDiv.style.textShadow = generateTextShadowForOutline(outlineThickness, outlineColor);
+                    } else {
+                        tempDiv.style.webkitTextStrokeWidth = '0';
+                        tempDiv.style.webkitTextStrokeColor = 'transparent';
+                        tempDiv.style.textShadow = 'none';
+                    }
+
+                    tempDiv.textContent = textElement.textContent;
+                    document.body.appendChild(tempDiv);
+                    const rawTextRect = tempDiv.getBoundingClientRect();
+                    const minContentWidth = rawTextRect.width;
+                    const minContentHeight = rawTextRect.height;
+                    document.body.removeChild(tempDiv);
+
+                    const wrapperPaddingHorizontal = 25;
+                    const wrapperPaddingVertical = 10;
+                    const clampedWidth = Math.max(newWidth, minContentWidth + (wrapperPaddingHorizontal * 2));
+                    const clampedHeight = Math.max(newHeight, minContentHeight + (wrapperPaddingVertical * 2));
+
+                    const widthDiff = clampedWidth - newWidth;
+                    const heightDiff = clampedHeight - newHeight;
+                    if (activeHandle.startsWith('top-')) {
+                        newTop -= heightDiff;
+                    }
+                    if (activeHandle.endsWith('-left')) {
+                        newLeft -= widthDiff;
+                    }
+                    newWidth = clampedWidth;
+                    newHeight = clampedHeight;
+                }
+
+                newWidth = Math.max(20, newWidth);
+                newHeight = Math.max(20, newHeight);
+
+                selectedElementWrapper.style.width = `${newWidth}px`;
+                selectedElementWrapper.style.height = `${newHeight}px`;
+                selectedElementWrapper.style.left = `${newLeft}px`;
+                selectedElementWrapper.style.top = `${newTop}px`;
+
+                initialMouseX = currentMouseXOnUnscaledWrapper;
+                initialMouseY = currentMouseYOnUnscaledWrapper;
+                initialWidth = newWidth;
+                initialHeight = newHeight;
+                initialLeft = newLeft;
+                initialTop = newTop;
+
+                if (!pendingUpdateAnimationFrame) {
+                    pendingUpdateAnimationFrame = requestAnimationFrame(() => {
+                        sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                        pendingUpdateAnimationFrame = null;
+                    });
+                }
+            } else if (isRotating && selectedElementWrapper) {
+                e.preventDefault();
+                const rect = selectedElementWrapper.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                const currentAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+                const angleDiff = (currentAngle - initialRotationAngle) * 180 / Math.PI;
+                let newRotation = initialElementRotation + angleDiff;
+                newRotation = (newRotation % 360 + 360) % 360;
+
+                selectedElementWrapper.style.transform = `rotate(${newRotation}deg)`;
+                rotationRange.value = newRotation;
+                rotationValue.textContent = `${Math.round(newRotation)}°`;
+
+                if (!pendingUpdateAnimationFrame) {
+                    pendingUpdateAnimationFrame = requestAnimationFrame(() => {
+                        sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                        pendingUpdateAnimationFrame = null;
+                    });
+                }
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging || isResizing || isRotating) {
+                if (pendingUpdateAnimationFrame) {
+                    cancelAnimationFrame(pendingUpdateAnimationFrame);
+                    pendingUpdateAnimationFrame = null;
+                }
+                if (selectedElementWrapper) {
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            }
+            isDragging = false;
+            isResizing = false;
+            isRotating = false;
+            activeHandle = '';
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            const target = e.target;
+            const clickedWrapper = target.closest('.element-wrapper');
+            const clickedAudioListItem = target.closest('.audio-list-item');
+
+            const wrapperRect = mainCanvasWrapper.getBoundingClientRect();
+            const touchXOnUnscaledWrapper = (e.touches[0].clientX - wrapperRect.left) / currentZoom;
+            const touchYOnUnscaledWrapper = (e.touches[0].clientY - wrapperRect.top) / currentZoom;
+
+            if (e.touches.length === 1) {
+                if (clickedWrapper) {
+                    if (target.classList.contains('resize-handle')) {
+                        e.preventDefault();
+                        isResizing = true;
+                        selectElement(clickedWrapper);
+                        activeHandle = Array.from(target.classList).find(cls => cls.startsWith('top-') || cls.startsWith('bottom-'));
+                        initialMouseX = touchXOnUnscaledWrapper;
+                        initialMouseY = touchYOnUnscaledWrapper;
+                        initialLeft = selectedElementWrapper.offsetLeft;
+                        initialTop = selectedElementWrapper.offsetTop;
+                        initialWidth = selectedElementWrapper.offsetWidth;
+                        initialHeight = selectedElementWrapper.offsetHeight;
+                        return;
+                    }
+
+                    if (target.classList.contains('rotation-handle')) {
+                        e.preventDefault();
+                        isRotating = true;
+                        selectElement(clickedWrapper);
+                        const rect = selectedElementWrapper.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        initialRotationAngle = Math.atan2(e.touches[0].clientY - centerY, e.touches[0].clientX - centerX);
+                        initialElementRotation = getRotation(selectedElementWrapper);
+                        return;
+                    }
+
+                    e.preventDefault();
+                    isDragging = true;
+                    selectElement(clickedWrapper);
+                    initialMouseX = touchXOnUnscaledWrapper;
+                    initialMouseY = touchYOnUnscaledWrapper;
+                    initialLeft = clickedWrapper.offsetLeft;
+                    initialTop = clickedWrapper.offsetTop;
+                } else if (clickedAudioListItem) {
+                    e.stopPropagation();
+                } else {
+                    if (!target.closest('aside') && !target.closest('.zoom-controls') && !target.closest('.modal-overlay')) {
+                        deselectAllElements();
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            const wrapperRect = mainCanvasWrapper.getBoundingClientRect();
+            const currentTouchXOnUnscaledWrapper = (e.touches[0].clientX - wrapperRect.left) / currentZoom;
+            const currentTouchYOnUnscaledWrapper = (e.touches[0].clientY - wrapperRect.top) / currentZoom;
+
+            const now = Date.now();
+            if (now - lastCursorSendTime > cursorThrottleTime) {
+                sendWebSocketMessage('cursorMove', {
+                    userId: myUserId,
+                    x: currentTouchXOnUnscaledWrapper,
+                    y: currentTouchYOnUnscaledWrapper
+                });
+                lastCursorSendTime = now;
+            }
+
+            if (e.touches.length === 1) {
+                if (isDragging && selectedElementWrapper) {
+                    e.preventDefault();
+                    const dx = currentTouchXOnUnscaledWrapper - initialMouseX;
+                    const dy = currentTouchYOnUnscaledWrapper - initialMouseY;
+
+                    let newLeft = initialLeft + dx;
+                    let newTop = initialTop + dy;
+
+                    selectedElementWrapper.style.left = `${newLeft}px`;
+                    selectedElementWrapper.style.top = `${newTop}px`;
+
+                    if (!pendingUpdateAnimationFrame) {
+                        pendingUpdateAnimationFrame = requestAnimationFrame(() => {
+                            sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                            pendingUpdateAnimationFrame = null;
+                        });
+                    }
+                } else if (isResizing && selectedElementWrapper) {
+                    e.preventDefault();
+                    const dx = currentTouchXOnUnscaledWrapper - initialMouseX;
+                    const dy = currentTouchYOnUnscaledWrapper - initialMouseY;
+
+                    let newWidth = initialWidth;
+                    let newHeight = initialHeight;
+                    let newLeft = initialLeft;
+                    let newTop = initialTop;
+
+                    const contentElement = selectedElementWrapper.querySelector('.element-content');
+                    if (contentElement && (contentElement.tagName === 'IMG')) {
+                        const originalImageAspectRatio = parseFloat(selectedElementWrapper.dataset.initialAspectRatio);
+
+                        let potentialNewWidth = initialWidth + (activeHandle.includes('left') ? -dx : dx);
+                        let potentialNewHeight = initialHeight + (activeHandle.includes('top') ? -dy : dy);
+
+                        if (Math.abs(potentialNewWidth - initialWidth) > Math.abs(potentialNewHeight - initialHeight)) {
+                            newWidth = potentialNewWidth;
+                            newHeight = newWidth / originalImageAspectRatio;
+                        } else {
+                            newHeight = potentialNewHeight;
+                            newWidth = newHeight * originalImageAspectRatio;
+                        }
+
+                        newWidth = Math.max(20, newWidth);
+                        newHeight = Math.max(20, newHeight);
+
+                        if (activeHandle.includes('left')) {
+                            newLeft = initialLeft + initialWidth - newWidth;
+                        }
+                        if (activeHandle.includes('top')) {
+                            newTop = initialTop + initialHeight - newHeight;
+                        }
+
+                    } else if (contentElement && contentElement.classList.contains('text-content')) {
+                        switch (activeHandle) {
+                            case 'top-left':
+                                newWidth = initialWidth - dx;
+                                newHeight = initialHeight - dy;
+                                newLeft = initialLeft + dx;
+                                newTop = initialTop + dy;
+                                break;
+                            case 'top-right':
+                                newWidth = initialWidth + dx;
+                                newHeight = initialHeight - dy;
+                                newTop = initialTop + dy;
+                                break;
+                            case 'bottom-left':
+                                newWidth = initialWidth - dx;
+                                newHeight = initialHeight + dy;
+                                newLeft = initialLeft + dx;
+                                break;
+                            case 'bottom-right':
+                                newWidth = initialWidth + dx;
+                                newHeight = initialHeight + dy;
+                                break;
+                        }
+
+                        const textElement = contentElement;
+                        const tempDiv = document.createElement('div');
+                        tempDiv.style.position = 'absolute';
+                        tempDiv.style.visibility = 'hidden';
+                        tempDiv.style.whiteSpace = 'pre-wrap';
+                        tempDiv.style.wordBreak = 'break-word';
+                        tempDiv.style.boxSizing = 'border-box';
+                        tempDiv.style.fontSize = window.getComputedStyle(textElement).fontSize;
+                        tempDiv.style.fontWeight = window.getComputedStyle(textElement).fontWeight;
+                        tempDiv.style.fontStyle = window.getComputedStyle(textElement).fontStyle;
+                        tempDiv.style.fontFamily = window.getComputedStyle(textElement).fontFamily;
+                        tempDiv.style.lineHeight = '1';
+                        tempDiv.style.textAlign = 'center';
+                        tempDiv.style.display = 'flex';
+                        tempDiv.style.alignItems = 'center';
+                        tempDiv.style.justifyContent = 'center';
+
+                        const outlineThickness = parseFloat(textElement.style.webkitTextStrokeWidth) || 0;
+                        const outlineColor = textElement.style.webkitTextStrokeColor || '#000000';
+                        if (outlineThickness > 0) {
+                            tempDiv.style.webkitTextStrokeWidth = `${outlineThickness}px`;
+                            tempDiv.style.webkitTextStrokeColor = outlineColor;
+                            tempDiv.style.textShadow = generateTextShadowForOutline(outlineThickness, outlineColor);
+                        } else {
+                            tempDiv.style.webkitTextStrokeWidth = '0';
+                            tempDiv.style.webkitTextStrokeColor = 'transparent';
+                            tempDiv.style.textShadow = 'none';
+                        }
+
+                        tempDiv.textContent = textElement.textContent;
+                        document.body.appendChild(tempDiv);
+                        const rawTextRect = tempDiv.getBoundingClientRect();
+                        const minContentWidth = rawTextRect.width;
+                        const minContentHeight = rawTextRect.height;
+                        document.body.removeChild(tempDiv);
+
+                        const wrapperPaddingHorizontal = 25;
+                        const wrapperPaddingVertical = 10;
+                        const clampedWidth = Math.max(newWidth, minContentWidth + (wrapperPaddingHorizontal * 2));
+                        const clampedHeight = Math.max(newHeight, minContentHeight + (wrapperPaddingVertical * 2));
+
+                        const widthDiff = clampedWidth - newWidth;
+                        const heightDiff = clampedHeight - newHeight;
+                        if (activeHandle.startsWith('top-')) {
+                            newTop -= heightDiff;
+                        }
+                        if (activeHandle.endsWith('-left')) {
+                            newLeft -= widthDiff;
+                        }
+                        newWidth = clampedWidth;
+                        newHeight = clampedHeight;
+                    }
+
+                    newWidth = Math.max(20, newWidth);
+                    newHeight = Math.max(20, newHeight);
+
+                    selectedElementWrapper.style.width = `${newWidth}px`;
+                    selectedElementWrapper.style.height = `${newHeight}px`;
+                    selectedElementWrapper.style.left = `${newLeft}px`;
+                    selectedElementWrapper.style.top = `${newTop}px`;
+
+                    initialMouseX = currentTouchXOnUnscaledWrapper;
+                    initialMouseY = currentTouchYOnUnscaledWrapper;
+                    initialWidth = newWidth;
+                    initialHeight = newHeight;
+                    initialLeft = newLeft;
+                    initialTop = newTop;
+
+                    if (!pendingUpdateAnimationFrame) {
+                        pendingUpdateAnimationFrame = requestAnimationFrame(() => {
+                            sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                            pendingUpdateAnimationFrame = null;
+                        });
+                    }
+                } else if (isRotating && selectedElementWrapper) {
+                    e.preventDefault();
+                    const rect = selectedElementWrapper.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+
+                    const currentAngle = Math.atan2(e.touches[0].clientY - centerY, e.touches[0].clientX - centerX);
+                    const angleDiff = (currentAngle - initialRotationAngle) * 180 / Math.PI;
+                    let newRotation = initialElementRotation + angleDiff;
+                    newRotation = (newRotation % 360 + 360) % 360;
+
+                    selectedElementWrapper.style.transform = `rotate(${newRotation}deg)`;
+                    rotationRange.value = newRotation;
+                    rotationValue.textContent = `${Math.round(newRotation)}°`;
+
+                    if (!pendingUpdateAnimationFrame) {
+                        pendingUpdateAnimationFrame = requestAnimationFrame(() => {
+                            sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                            pendingUpdateAnimationFrame = null;
+                        });
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            if (isDragging || isResizing || isRotating) {
+                if (pendingUpdateAnimationFrame) {
+                    cancelAnimationFrame(pendingUpdateAnimationFrame);
+                    pendingUpdateAnimationFrame = null;
+                }
+                if (selectedElementWrapper) {
+                    sendWebSocketMessage('elementUpdate', { element: getElementState(selectedElementWrapper) });
+                }
+            }
+            isDragging = false;
+            isResizing = false;
+            isRotating = false;
+            activeHandle = '';
+        });
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                console.log(`[TAB_CHANGE] Switching to tab: ${tabId}`);
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(`tab-content-${tabId}`).classList.add('active');
+
+                if (tabId === 'audio') {
+                    if (selectedElementWrapper) {
+                        console.log("[TAB_CHANGE] Deselecting visual element when switching to audio tab.");
+                        deselectAllElements();
+                        const firstAudio = Array.from(allElements.values()).find(el => el.tagName === 'AUDIO');
+                        if (firstAudio) {
+                            console.log(`[TAB_CHANGE] Auto-selecting first audio: ${firstAudio.id}`);
+                            selectAudioElement(firstAudio);
+                        }
+                    }
+                } else {
+                    if (selectedAudioElement) {
+                        console.log("[TAB_CHANGE] Deselecting audio element when switching away from audio tab.");
+                        deselectAudioControls();
+                        if (tabId === 'properties' && selectedElementWrapper) {
+                            console.log("[TAB_CHANGE] Re-selecting previously selected visual element.");
+                            selectElement(selectedElementWrapper);
+                        }
+                    }
+                }
+            });
+        });
+
+        let draggedLayer = null;
+        layersList.addEventListener('dragstart', (e) => {
+            const target = e.target.closest('.layer-item');
+            if (target) {
+                draggedLayer = target;
+                e.dataTransfer.effectAllowed = 'move';
+                setTimeout(() => {
+                    target.style.opacity = '0.5';
+                }, 0);
+            }
+        });
+
+        layersList.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const target = e.target.closest('.layer-item');
+            if (target && target !== draggedLayer) {
+                const bounding = target.getBoundingClientRect();
+                const offset = bounding.y + (bounding.height / 2);
+                if (e.clientY < offset) {
+                    layersList.insertBefore(draggedLayer, target);
+                } else {
+                    layersList.insertBefore(draggedLayer, target.nextSibling);
+                }
+            }
+        });
+
+        layersList.addEventListener('dragend', () => {
+            if (draggedLayer) {
+                draggedLayer.style.opacity = '1';
+                draggedLayer = null;
+
+                let maxZ = getNextHighestZIndex() - 1;
+                if (maxZ < 100) {
+                    maxZ = 100;
+                }
+
+                const layersInNewOrder = Array.from(layersList.children);
+                const updatedElementsForReorder = [];
+                layersInNewOrder.forEach((layerItem, index) => {
+                    if (layerItem.dataset.id) {
+                        const elementWrapper = allElements.get(layerItem.dataset.id);
+                        if (elementWrapper) {
+                            const newZIndex = maxZ - index;
+                            elementWrapper.style.zIndex = newZIndex;
+                            updatedElementsForReorder.push({ id: elementWrapper.id, zIndex: newZIndex });
+                        }
+                    }
+                });
+
+                updateLayersList();
+                sendWebSocketMessage('reorderLayers', { elements: updatedElementsForReorder });
+            }
+        });
+
+        zoomRange.addEventListener('input', () => {
+            currentZoom = parseFloat(zoomRange.value);
+            applyZoom();
+        });
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('highlight');
+            e.dataTransfer.dropEffect = 'copy';
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('highlight');
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('highlight');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        let confirmationModalCallback = null;
+        const confirmationModal = document.createElement('div');
+        confirmationModal.id = 'confirmationModal';
+        confirmationModal.classList.add('modal-overlay');
+        confirmationModal.innerHTML = `
+            <div class="modal-dialog">
+                <h3 class="modal-title">Confirmación</h3>
+                <p class="modal-message" id="confirmationMessage"></p>
+                <div class="modal-buttons">
+                    <button id="confirmYesBtn" class="modal-button sound">Sí</button>
+                    <button id="confirmNoBtn" class="modal-button mute">No</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(confirmationModal);
+
+        document.getElementById('confirmYesBtn').addEventListener('click', () => {
+            if (confirmationModalCallback) {
+                confirmationModalCallback();
+            }
+            confirmationModal.classList.remove('active');
+        });
+
+        document.getElementById('confirmNoBtn').addEventListener('click', () => {
+            confirmationModal.classList.remove('active');
+        });
+
+        function showConfirmationModal(message, callback) {
+            document.getElementById('confirmationMessage').textContent = message;
+            confirmationModalCallback = callback;
+            confirmationModal.classList.add('active');
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            connectWebSocket();
+            loadElementsState();
+            mainCanvasWrapper.style.transformOrigin = 'center center';
+            deselectAllElements();
+            updateLayersList();
+            updateAudioPlaylistDisplay();
+            updateFileCountDisplay();
+            applyZoom();
+            showMutePreferenceModal();
+        });
+
+        function showMutePreferenceModal() {
+            mutePreferenceModal.classList.add('active');
+
+            modalMuteBtn.onclick = () => {
+                isMutedGlobally = true;
+                applyGlobalMuteState();
+                mutePreferenceModal.classList.remove('active');
+            };
+
+            modalSoundBtn.onclick = () => {
+                isMutedGlobally = false;
+                applyGlobalMuteState();
+                mutePreferenceModal.classList.remove('active');
+            };
+        }
+    </script>
+</body>
+</html>

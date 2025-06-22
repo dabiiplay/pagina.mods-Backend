@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "cloudinary": "^2.7.0",
+    "ws": "^8.18.2"
+  }
+}
